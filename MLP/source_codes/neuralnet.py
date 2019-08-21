@@ -9,7 +9,7 @@ class hidden_layer(object):
 
         if activation_function in ["sigmoid", "ReLU", "softmax", "tanh"]:
             self.activation = map_of_functions[activation_function]
-            self.derivative = mao_of_derivatives[activation_function]
+            self.derivative = map_of_derivatives[activation_function]
         
         else:
             print("The activation function mentioned does not exist.")
