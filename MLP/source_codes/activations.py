@@ -1,8 +1,9 @@
 import numpy as np
 
+
 def sigmoid(x):
     """
-    Returns the Sigmoid of a given scalar or vector
+    Returns the sigmoid of a given scalar or vector
     
     sigmoid(x) = 1/(1+exp(-x))
 
@@ -17,12 +18,13 @@ def sigmoid(x):
     """
     return 1/(1+np.exp(-x))
 
-def relu(x):
+
+def ReLU(x):
     """
     
     Rectified linear unit
     
-    relu(x) = max(0,x)
+    ReLU(x) = max(0,x)
 
     Paramaters
     -----------
@@ -30,10 +32,11 @@ def relu(x):
 
     Returns
     --------
-    relu(x) - scalar or vector
+    ReLU(x) - scalar or vector
     
     """
     return (x>0)*x
+
 
 def tanh(x):
     """
