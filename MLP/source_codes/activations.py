@@ -56,3 +56,22 @@ def tanh(x):
     """
 
     return (np.exp(x)-np.exp(-x))/(np.exp(x)+np.exp(-x))
+
+
+def softmax(x):
+    """
+    Softmax
+
+    given a vector, calculates the softmax value for each entry
+
+    Paramaters
+    -----------
+    x - scalar or vector
+
+    Returns
+    --------
+    softmax probabilities - scalar or vector
+    
+    """
+
+    return np.exp(x)/np.sum(np.exp(x))

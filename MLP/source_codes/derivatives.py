@@ -18,7 +18,7 @@ def derivative_of_sigmoid(x):
     
     """
 
-    return act.sigmoid(x)*(1-act.sigmoid(x))
+    return 
 
 
 def derivative_of_ReLU(x):
@@ -62,3 +62,22 @@ def derivative_of_tanh(x):
     """
 
     return 1 - act.tanh(x)**2
+
+
+def derivative_of_softmax(x):
+    """
+    Returns the derivative of softmax for a given scalar or vector
+    
+    derivative(softmax(x)) = softmax(x)(1 - (softmax(x)))
+
+    Paramaters
+    -----------
+    x - scalar or vector
+
+    Returns
+    --------
+    softmax(x)(1 - (softmax(x))) - scalar or vector
+    
+    """
+
+    return act.softmax(x)*(1-act.softmax(x))
