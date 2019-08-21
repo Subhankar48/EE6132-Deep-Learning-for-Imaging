@@ -75,3 +75,6 @@ def softmax(x):
     """
 
     return np.exp(x)/np.sum(np.exp(x))
+
+
+map_of_functions = {"sigmoid" : sigmoid, "ReLU" : ReLU, "softmax" : softmax, "tanh" : tanh}

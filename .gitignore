@@ -4,3 +4,5 @@ MLP/source_codes/mnist/t10k-labels-idx1-ubyte.gz
 MLP/source_codes/mnist/train-labels-idx1-ubyte.gz
 MLP/source_codes/mnist/t10k-images-idx3-ubyte.gz
 .vscode/settings.json
+MLP/source_codes/__pycache__/activations.cpython-36.pyc
+MLP/source_codes/__pycache__/derivatives.cpython-36.pyc

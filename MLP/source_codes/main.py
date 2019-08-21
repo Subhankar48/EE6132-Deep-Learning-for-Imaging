@@ -1,3 +1,4 @@
-# Import the libraries
-import activations as act
-import derivatives as dv
+
+from activations import map_of_functions
+from derivatives import map_of_derivatives
+
