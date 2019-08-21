@@ -14,17 +14,15 @@ def download(folder = FOLDER_NAME , redownload = False):
 
     """
     
-    Used to download the mnist dataset if it does not exist
-    locally or the user wants to redownload it and parse it
-    into training images, training labels, test images and 
-    test labels. 
+    Used to download the mnist dataset from Yann LeCun's website if it
+    does not exist locally or the user wants to redownload it and parse it
+    into training images, training labels, test images and test labels. 
 
     Paramaters
     ----------
-    name of the download folder (string, optional) - given the folder
-    with the required name exists, the function assumes it has
-    the required data. It will fail if there exists a folder with 
-    the given name but is empty.
+    name of the download folder (string, optional) - given the folder with 
+    the required name exists, the function assumes it has the required 
+    data. It will fail if there exists a folder with the given name but is empty.
 
     redownload (boolean, optional) - to redownload even if the dataset exists
 
