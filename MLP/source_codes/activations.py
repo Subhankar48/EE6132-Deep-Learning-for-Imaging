@@ -4,7 +4,7 @@ import numpy as np
 def sigmoid(x):
     """
     Returns the sigmoid of a given scalar or vector
-    
+
     sigmoid(x) = 1/(1+exp(-x))
 
     Paramaters
@@ -14,16 +14,16 @@ def sigmoid(x):
     Returns
     --------
     sigmoid(x) - scalar or vector
-    
+
     """
     return 1/(1+np.exp(-x))
 
 
 def ReLU(x):
     """
-    
+
     Rectified linear unit
-    
+
     ReLU(x) = max(0,x)
 
     Paramaters
@@ -33,14 +33,14 @@ def ReLU(x):
     Returns
     --------
     ReLU(x) - scalar or vector
-    
+
     """
-    return (x>0)*x
+    return (x > 0)*x
 
 
 def tanh(x):
     """
-    
+
     Hyperbolic Tangent
 
     tanh(x) = (exp(x)-exp(-x))/(epx(x)+exp(-x))
@@ -52,7 +52,7 @@ def tanh(x):
     Returns
     --------
     tanh(x) - scalar or vector
-    
+
     """
 
     return (np.exp(x)-np.exp(-x))/(np.exp(x)+np.exp(-x))
@@ -71,10 +71,11 @@ def softmax(x):
     Returns
     --------
     softmax probabilities - scalar or vector
-    
+
     """
 
     return np.exp(x)/np.sum(np.exp(x))
 
 
-map_of_functions = {"sigmoid" : sigmoid, "ReLU" : ReLU, "softmax" : softmax, "tanh" : tanh}
+map_of_functions = {"sigmoid": sigmoid,
+                    "ReLU": ReLU, "softmax": softmax, "tanh": tanh}

@@ -9,10 +9,10 @@ FOLDER_NAME = 'mnist'
 NUMBER_OF_OUTPUT_CLASSES = 10
 DIMENSION_OF_INPUT = 784
 
-def download(folder = FOLDER_NAME , redownload = False):
 
+def download(folder=FOLDER_NAME, redownload=False):
     """
-    
+
     Used to download the mnist dataset from Yann LeCun's website if it
     does not exist locally or the user wants to redownload it and parse it
     into training images, training labels, test images and test labels. 
@@ -34,19 +34,25 @@ def download(folder = FOLDER_NAME , redownload = False):
 
     if not os.path.exists(os.path.join(CURRENT_DIRECTORY, folder)) or redownload:
         os.mkdir(os.path.join(CURRENT_DIRECTORY, folder))
-        wget.download("http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz", out=folder)
-        wget.download('http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz', out=folder)
-        wget.download('http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz', out=folder)
-        wget.download('http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz', out=folder)
-
+        wget.download(
+            "http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz", out=folder)
+        wget.download(
+            'http://yann.lecun.com/exdb/mnist/train-labels-idx1-ubyte.gz', out=folder)
+        wget.download(
+            'http://yann.lecun.com/exdb/mnist/t10k-images-idx3-ubyte.gz', out=folder)
+        wget.download(
+            'http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz', out=folder)
 
     mndata = MNIST(os.path.join(CURRENT_DIRECTORY, folder))
     mndata.gz = True
     train_images, train_labels = mndata.load_training()
     test_images, test_labels = mndata.load_testing()
-    training_data = append_and_convert_labels_to_one_hot_encodings(train_images, train_labels)
-    test_data = append_and_convert_labels_to_one_hot_encodings(test_images, test_labels)
+    training_data = append_and_convert_labels_to_one_hot_encodings(
+        train_images, train_labels)
+    test_data = append_and_convert_labels_to_one_hot_encodings(
+        test_images, test_labels)
     return training_data, test_data
+
 
 def append_and_convert_labels_to_one_hot_encodings(data, label):
     processed_data = []
