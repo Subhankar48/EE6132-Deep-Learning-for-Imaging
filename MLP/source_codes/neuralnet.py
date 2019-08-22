@@ -72,7 +72,7 @@ class network(object):
         self.weight_gradients = np.zeros_like(self.weights)
         self.bias_gradients = np.zeros_like(self.biases)
         # for the final layer
-        delta = (y/a_vals[-1])*
+        delta = (y/a_vals[-1])*()
 
 a = network([784, 500, 250, 100, 10])
 a.get_data()
