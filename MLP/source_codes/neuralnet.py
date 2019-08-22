@@ -5,7 +5,6 @@ from derivatives import map_of_derivatives
 import downloader
 
 # for the network mentioned in the assignment
-NUMBER_OF_HIDDEN_LAYERS = 3
 
 
 class layer(object):
@@ -24,10 +23,15 @@ class layer(object):
 class network(object):
 
     layer_sizes = []
-    input_size = downloader.DIMENSION_OF_INPUT
-    output_size = downloader.NUMBER_OF_OUTPUT_CLASSES
     weights = []
     biases = []
+    training_data = []
+    test_data = []
+    feed_forward_activations = []
+    z_values = []
+    weight_gradients = []
+    bias_gradients = []
+    number_of_layers = 0
 
     def __init__(self, sizes):
         if (len(sizes) > 0):
@@ -42,3 +46,33 @@ class network(object):
             dl = np.sqrt(6/(fan_in+fan_out))
             self.weights.append(np.random.uniform(-dl, dl, (fan_in, fan_out)))
             self.biases.append(np.zeros((1, fan_out)))
+        self.number_of_layers = len(self.weights)+1
+
+    def get_data(self):
+        self.training_data, self.test_data = downloader.download()
+
+    def cross_entropy_loss(x, y):
+        return -np.sum(y*np.log(x))
+
+    def feed_forward(self, x):
+        self.feed_forward_activations = []
+        temp = x
+        for count in range(self.number_of_layers-1):
+            z = np.dot(np.transpose(
+                self.weights[count]), temp)+self.biases[count]
+            self.z_values.append(z)
+            a = map_of_functions["softmax"](
+                z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
+            self.feed_forward_activations.append(a)
+            temp = a
+        return self.z_values, self.feed_forward_activations
+
+    def backprop(self, x, y):
+        z_vals, a_vals = self.feed_forward(x)
+        self.weight_gradients = np.zeros_like(self.weights)
+        self.bias_gradients = np.zeros_like(self.biases)
+        # for the final layer
+        delta = (y/a_vals[-1])*
+
+a = network([784, 500, 250, 100, 10])
+a.get_data()
