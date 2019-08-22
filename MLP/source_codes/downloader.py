@@ -7,6 +7,7 @@ import numpy as np
 CURRENT_DIRECTORY = os.getcwd()
 FOLDER_NAME = 'mnist'
 NUMBER_OF_OUTPUT_CLASSES = 10
+DIMENSION_OF_INPUT = 784
 
 def download(folder = FOLDER_NAME , redownload = False):
 
@@ -78,5 +79,3 @@ def append_and_convert_labels_to_one_hot_encodings(data, label):
         # convert them into a tuple
         processed_data.append(tuple(temp_element))
     return processed_data
-
-download()
