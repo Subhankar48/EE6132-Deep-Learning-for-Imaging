@@ -2,13 +2,11 @@ import wget
 import os
 from mnist import MNIST
 import numpy as np
-import cv2
-import matplotlib.pyplot as plt
 
 
 CURRENT_DIRECTORY = os.getcwd()
 FOLDER_NAME = 'mnist'
-
+NUMBER_OF_OUTPUT_CLASSES = 10
 
 def download(folder = FOLDER_NAME , redownload = False):
 
@@ -45,4 +43,40 @@ def download(folder = FOLDER_NAME , redownload = False):
     mndata.gz = True
     train_images, train_labels = mndata.load_training()
     test_images, test_labels = mndata.load_testing()
-    return train_images, train_labels, test_images, test_labels
+    training_data = append_and_convert_labels_to_one_hot_encodings(train_images, train_labels)
+    test_data = append_and_convert_labels_to_one_hot_encodings(test_images, test_labels)
+    return training_data, test_data
+
+def append_and_convert_labels_to_one_hot_encodings(data, label):
+    processed_data = []
+    """
+
+    Used to first convert the image labels into one hot encoded vectors and
+    append the pixel values (length 784 vector) and the corresponding one
+    hot encoded vector into a tuple. These are appended to a python list 
+    processed_data which is returned
+
+    Parameters
+    ----------
+    data - training or test input values
+
+    label - training or test output labels
+
+    Returns
+    -------
+    python list whose each element is image data and its corresponding label 
+    as a tuple. 
+
+    """
+    for n in range(len(data)):
+        temp_element = []
+        temp_vector = np.zeros(NUMBER_OF_OUTPUT_CLASSES)
+        # This step is to convert a label to a one hot encoded vector
+        temp_vector[label[n]] = 1
+        temp_element.append(np.asanyarray(data[n]))
+        temp_element.append(temp_vector)
+        # convert them into a tuple
+        processed_data.append(tuple(temp_element))
+    return processed_data
+
+download()
