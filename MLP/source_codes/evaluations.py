@@ -6,13 +6,20 @@ def accuracy(y_pred, y_true):
     return matching_colums/total_coulmns
 
 def precision(y_pred, y_true):
-    np.sum(np.sum(y_pred*y_true))/np.sum(np.sum(y_pred))
+    (y_pred*y_true).sum()/(y_pred).sum()
 
 def recall(y_pred, y_true):
-    np.sum(np.sum(y_pred*y_true))/np.sum(np.sum(y_true))
+    (y_pred*y_true).sum()/(y_true).sum()
 
 def f1_score(y_pred, y_true):
     _precision = precision(y_pred,y_true)
     _recall = recall(y_pred, y_true)
     return 2*_precision*_recall/(_precision+_recall)
     
+def confusion_matrix(y_pred, y_true):
+    confusion_mat =  np.dot(y_true, np.transpose(y_pred))
+    total_samples = np.sum(np.sum(confusion_mat))
+    correct_samples = np.trace(confusion_mat)
+    no_of_samples_model_underpredicted = np.tril(confusion_mat,-1).sum()
+    no_of_samples_model_overpredicted = np.triu(confusion_mat,1).sum()
+    return confusion_mat, no_of_samples_model_underpredicted, no_of_samples_model_overpredicted
