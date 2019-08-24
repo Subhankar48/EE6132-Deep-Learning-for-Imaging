@@ -51,15 +51,17 @@ class network(object):
         for layer_number in range(len(self.layer_sizes)-1):
             fan_in = self.layer_sizes[layer_number]
             fan_out = self.layer_sizes[layer_number+1]
-            dl = np.sqrt(6/(fan_in+fan_out))
-            self.weights.append(np.asarray(
-                np.random.uniform(-dl, dl, (fan_in, fan_out)), dtype=np.float64))
+            self.weights.append(self.glorot_initialization(fan_in, fan_out))
             self.biases.append(np.asarray(
                 np.zeros((fan_out, 1)), dtype=np.float64))
         self.number_of_layers = len(self.weights)+1
 
     def get_data(self):
         self.training_data, self.test_data = downloader.download()
+
+    def glorot_initialization(self, fan_in, fan_out):
+        dl = np.sqrt(6/(fan_in+fan_out))
+        return np.asarray(np.random.uniform(-dl, dl, (fan_in, fan_out)), dtype=np.float64)
 
     def cross_entropy_loss(self, x, y):
         return -np.sum(y*np.log(x))
