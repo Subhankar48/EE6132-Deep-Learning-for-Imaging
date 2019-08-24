@@ -18,7 +18,7 @@ def derivative_of_sigmoid(x):
 
     """
 
-    return
+    return act.sigmoid(x)*(1-act.sigmoid(x))
 
 
 def derivative_of_ReLU(x):

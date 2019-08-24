@@ -77,7 +77,7 @@ def append_and_convert_labels_to_one_hot_encodings(data, label):
     """
     for n in range(len(data)):
         temp_element = []
-        temp_vector = np.zeros(NUMBER_OF_OUTPUT_CLASSES)
+        temp_vector = np.zeros(NUMBER_OF_OUTPUT_CLASSES).reshape(-1,1)
         # This step is to convert a label to a one hot encoded vector
         temp_vector[label[n]] = 1
         temp_element.append(np.asanyarray(data[n]))
