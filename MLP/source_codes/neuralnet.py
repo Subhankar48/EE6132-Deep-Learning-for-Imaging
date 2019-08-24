@@ -4,6 +4,7 @@ from activations import map_of_functions
 from derivatives import map_of_derivatives
 import downloader
 import random
+import matplotlib.pyplot as plt
 
 # for the network mentioned in the assignment
 
@@ -34,6 +35,7 @@ class network(object):
     bias_gradients = []
     number_of_layers = 0
     epochs = 15
+    minibatch_losses = []
 
     def __init__(self, sizes):
         if (len(sizes) > 0):
@@ -89,7 +91,7 @@ class network(object):
 
     def backprop(self, x, y):
         z_vals, a_vals = self.feed_forward(x)
-        self.initialize_gradients()
+        # self.initialize_gradients()
         delta = self.cross_entropy_derivative_with_softmax(
             a_vals[-1], y)*(map_of_derivatives["softmax"](z_vals[-1]))
         self.bias_gradients[-1] = delta
@@ -102,9 +104,11 @@ class network(object):
                 a_vals[-layer_number-1], np.transpose(delta))
         return self.weight_gradients, self.bias_gradients
 
-    def train_network(self, data, learning_rate=0.08, number_of_epochs=15, minibatch_size=64):
+    def train_network(self, data, learning_rate=0.001, number_of_epochs=15, minibatch_size=64):
         for epoch in range(number_of_epochs):
-            print(f"{epoch} epoch is running")
+            total_loss = 0
+            print(epoch+1," epoch is running")
+            print("--------------------------------")
             random.shuffle(data)
             minibatches = [data[k:k+minibatch_size] for k in range(0,len(data),minibatch_size)]
             for minibatch in minibatches:
@@ -120,10 +124,23 @@ class network(object):
                             learning_rate*w_grad[count]
                         self.biases[count] = self.biases[count] - \
                             learning_rate*b_grad[count]
+                # total_loss = total_loss+loss
                 loss = loss/minibatch_size
-                print(f"loss = {loss}")
+                self.minibatch_losses.append(loss)
+                print(f"minibatch loss is ------------ = {loss}")
+            total_loss = total_loss/len(data)
+            print("****************************************************")
+
+            print(f"Total loss is ------------********** = {total_loss}")
+
+            print("****************************************************")
+
+    def plotter(self):
+        plt.plot(self.minibatch_losses)
+        plt.show()
 
 
 a = network([784, 500, 250, 100, 10])
 a.get_data()
-a.train_network(a.training_data[:128])
+a.initialize_gradients()
+a.train_network(a.training_data)
