@@ -49,8 +49,7 @@ def download(folder=FOLDER_NAME, redownload=False):
     test_images, test_labels = mndata.load_testing()
     training_data = append_and_convert_labels_to_one_hot_encodings(
         train_images, train_labels)
-    test_data = append_and_convert_labels_to_one_hot_encodings(
-        test_images, test_labels)
+    test_data = parse_test_data(test_images, test_labels)
     return training_data, test_data
 
 
@@ -65,9 +64,9 @@ def append_and_convert_labels_to_one_hot_encodings(data, label):
 
     Parameters
     ----------
-    data - training or test input values
+    data - training values
 
-    label - training or test output labels
+    label - training labels
 
     Returns
     -------
@@ -85,3 +84,13 @@ def append_and_convert_labels_to_one_hot_encodings(data, label):
         # convert them into a tuple
         processed_data.append(tuple(temp_element))
     return processed_data
+
+def parse_test_data(data, labels):
+    inputs = []
+    one_hot_vectors = []
+    for index in range(len(data)):
+        inputs.append(np.asanyarray(data[index]))
+        temp_vector = np.zeros(NUMBER_OF_OUTPUT_CLASSES)
+        temp_vector[labels[index]] = 1
+        one_hot_vectors.append(temp_vector)
+    return [np.asanyarray(inputs), np.asanyarray(one_hot_vectors)]

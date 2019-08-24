@@ -5,6 +5,7 @@ from derivatives import map_of_derivatives
 import downloader
 import random
 import matplotlib.pyplot as plt
+import evaluations as ev
 
 # for the network mentioned in the assignment
 
@@ -34,8 +35,11 @@ class network(object):
     weight_gradients = []
     bias_gradients = []
     number_of_layers = 0
-    epochs = 15
     minibatch_losses = []
+    _accuracy = 0
+    _precision = 0
+    _recall = 0
+    _f1_score = 0
 
     def __init__(self, sizes):
         if (len(sizes) > 0):
@@ -104,18 +108,19 @@ class network(object):
                 a_vals[-layer_number-1], np.transpose(delta))
         return self.weight_gradients, self.bias_gradients
 
-    def train_network(self, data, learning_rate=0.0008, number_of_epochs=20, minibatch_size=64):
+    def train_network(self, data, learning_rate=0.0003, number_of_epochs=15, minibatch_size=64):
         for epoch in range(number_of_epochs):
             total_loss = 0
-            print(epoch+1," epoch is running")
+            print(epoch+1, " epoch is running")
             print("--------------------------------")
             random.shuffle(data)
-            minibatches = [data[k:k+minibatch_size] for k in range(0,len(data),minibatch_size)]
+            minibatches = [data[k:k+minibatch_size]
+                           for k in range(0, len(data), minibatch_size)]
             for minibatch in minibatches:
                 loss = 0
                 for _input, one_hot_encoded_vector in minibatch:
                     temp_zvals, temp_avals = self.feed_forward(_input)
-                    loss =loss + self.cross_entropy_loss(
+                    loss = loss + self.cross_entropy_loss(
                         temp_avals[-1], one_hot_encoded_vector)
                     w_grad, b_grad = self.backprop(
                         _input, one_hot_encoded_vector)
@@ -135,13 +140,29 @@ class network(object):
 
             print("****************************************************")
 
+    def predict(self, inputs):
+        temp = inputs
+        for count in range(len(self.weights)):
+            z = np.dot(np.transpose(
+                self.weights[count]), temp)+self.biases[count]
+            a = map_of_functions["softmax"](
+                z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
+            temp = a
+        return (temp == np.max(temp, axis=0))*np.ones_like(temp)
+
     def plotter(self):
         plt.plot(self.minibatch_losses)
         plt.show()
+
+    def model_performance(self):
+        predictions = self.predict(self.test_data[0])
+        y_vals = np.transpose(self.test_data[1])
+        self._accuracy = ev.accuracy(predictions, y_vals)
+        self._precision = ev.precision(predictions, y_vals)
+        self._recall = ev.recall(predictions, y_vals)
+        self._f1_score = ev.f1_score(predictions, y_vals)
 
 
 a = network([784, 500, 250, 100, 10])
 a.get_data()
 a.initialize_gradients()
-a.train_network(a.training_data)
-a.plotter()
