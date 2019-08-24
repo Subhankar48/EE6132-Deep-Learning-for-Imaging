@@ -47,9 +47,10 @@ def download(folder=FOLDER_NAME, redownload=False):
     mndata.gz = True
     train_images, train_labels = mndata.load_training()
     test_images, test_labels = mndata.load_testing()
-    training_data = append_and_convert_labels_to_one_hot_encodings(
-        train_images, train_labels)
+    # training_data = append_and_convert_labels_to_one_hot_encodings(
+    #     train_images, train_labels)
     test_data = parse_test_data(test_images, test_labels)
+    training_data = parse_test_data(train_images, train_labels)
     return training_data, test_data
 
 

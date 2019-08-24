@@ -2,7 +2,7 @@ import numpy as np
 
 def accuracy(y_pred, y_true):
     total_coulmns = np.shape(y_true)[1]
-    matching_colums = (np.argmax(y_pred, axis=0)==np.argmax(y_true, axis=0)).sum()
+    matching_colums = ((np.argmax(y_pred, axis=0)==np.argmax(y_true, axis=0))*np.ones(total_coulmns)).sum()
     return matching_colums/total_coulmns
 
 def precision(y_pred, y_true):
