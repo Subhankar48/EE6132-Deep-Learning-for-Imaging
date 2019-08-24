@@ -88,10 +88,6 @@ class network(object):
             temp = a
         return zvals, avals
 
-    def info(self):
-        for weight in self.weight_gradients:
-            print(np.shape(weight))
-
     def cross_entropy_derivative_with_softmax(self, x, y):
         return x-y
 
@@ -110,7 +106,7 @@ class network(object):
                 a_vals[-layer_number-1], np.transpose(delta))
         return self.weight_gradients, self.bias_gradients
 
-    def train_network(self, data, learning_rate=0.0003, number_of_epochs=15, minibatch_size=64):
+    def train_network(self, data, learning_rate=0.01, number_of_epochs=15, minibatch_size=64):
         for epoch in range(number_of_epochs):
             total_loss = 0
             print(epoch+1, " epoch is running")
@@ -128,9 +124,9 @@ class network(object):
                         _input, one_hot_encoded_vector)
                     for count in range(len(self.weights)):
                         self.weights[count] = self.weights[count] - \
-                            learning_rate*w_grad[count]
+                            learning_rate*w_grad[count]/minibatch_size
                         self.biases[count] = self.biases[count] - \
-                            learning_rate*b_grad[count]
+                            learning_rate*b_grad[count]/minibatch_size
                 total_loss = total_loss+loss
                 loss = loss/minibatch_size
                 self.minibatch_losses.append(loss)
@@ -168,3 +164,5 @@ class network(object):
 a = network([784, 500, 250, 100, 10])
 a.get_data()
 a.initialize_gradients()
+a.train_network(a.training_data)
+a.plotter()
