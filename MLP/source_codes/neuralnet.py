@@ -104,7 +104,7 @@ class network(object):
                 a_vals[-layer_number-1], np.transpose(delta))
         return self.weight_gradients, self.bias_gradients
 
-    def train_network(self, data, learning_rate=0.001, number_of_epochs=15, minibatch_size=64):
+    def train_network(self, data, learning_rate=0.0008, number_of_epochs=20, minibatch_size=64):
         for epoch in range(number_of_epochs):
             total_loss = 0
             print(epoch+1," epoch is running")
@@ -124,7 +124,7 @@ class network(object):
                             learning_rate*w_grad[count]
                         self.biases[count] = self.biases[count] - \
                             learning_rate*b_grad[count]
-                # total_loss = total_loss+loss
+                total_loss = total_loss+loss
                 loss = loss/minibatch_size
                 self.minibatch_losses.append(loss)
                 print(f"minibatch loss is ------------ = {loss}")
@@ -144,3 +144,4 @@ a = network([784, 500, 250, 100, 10])
 a.get_data()
 a.initialize_gradients()
 a.train_network(a.training_data)
+a.plotter()
