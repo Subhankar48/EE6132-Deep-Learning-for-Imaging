@@ -14,7 +14,7 @@ class layer(object):
     def __init__(self, no_of_neurons, activation_function='sigmoid'):
         self.size = no_of_neurons
 
-        if activation_function in ["sigmoid", "tanh", "softmax", "tanh"]:
+        if activation_function in ["sigmoid", "ReLU", "softmax", "tanh"]:
             self.activation = map_of_functions[activation_function]
             self.derivative = map_of_derivatives[activation_function]
 
@@ -40,6 +40,7 @@ class network(object):
     _precision = 0
     _recall = 0
     _f1_score = 0
+    minibatch_size = 64
 
     def __init__(self, sizes):
         if (len(sizes) > 0):
@@ -88,7 +89,7 @@ class network(object):
     #         temp = a
     #     return zvals, avals
 
-    def feed_forward(self, x):
+    def feed_forward(self, x, weights, biases):
         self.feed_forward_activations = []
         zvals = []
         avals = []
@@ -96,16 +97,16 @@ class network(object):
         temp = x
         for count in range(self.number_of_layers-1):
             z = np.asanyarray(np.dot(np.transpose(
-                self.weights[count]), temp))+self.biases[count]
+                weights[count]), temp))+biases[count]
             zvals.append(z)
             a = map_of_functions["softmax"](
-                z) if count == self.number_of_layers-2 else map_of_functions["tanh"](z)
+                z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
             avals.append(a)
             temp = a
         return zvals, avals
 
-    def cross_entropy_derivative_with_softmax(self, x, y):
-        return x-y
+    def cross_entropy_derivative_with_softmax(self, y_pred, y_true):
+        return y_pred-y_true
 
     # def backprop(self, x, y):
     #     z_vals, a_vals = self.feed_forward(x)
@@ -122,21 +123,26 @@ class network(object):
     #             a_vals[-layer_number-1], np.transpose(delta))
     #     return self.weight_gradients, self.bias_gradients
 
-    def backprop(self, x, y):
-        z_vals, a_vals = self.feed_forward(x)
+    def backprop(self, x, y, weights, biases):
+        z_vals, a_vals = self.feed_forward(x, weights, biases)
         # self.initialize_gradients()
-        delta = self.cross_entropy_derivative_with_softmax(
-            a_vals[-1], y)*(map_of_derivatives["softmax"](z_vals[-1]))
-        self.bias_gradients[-1] = np.mean(delta, axis=1).reshape(-1, 1)
-        self.weight_gradients[-1] = np.dot(a_vals[-2], np.transpose(delta))
+        weight_gradients = []
+        bias_gradients = []
+        for count in range(len(weights)):
+            weight_gradients.append(np.zeros_like(weights[count]))
+            bias_gradients.append(np.zeros_like(biases[count]))
+        delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
+        bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
+        weight_gradients[-1] = np.dot(a_vals[-2], np.transpose(delta))
         for layer_number in range(2, self.number_of_layers):
-            delta = np.multiply(np.dot(self.weights[-layer_number+1], delta),
-                                map_of_derivatives["tanh"](np.asanyarray(z_vals[-layer_number])))
-            self.bias_gradients[-layer_number] = np.mean(
-                delta, axis=1).reshape(-1, 1)
-            self.weight_gradients[-layer_number] = np.dot(
+            delta = np.dot(weights[-layer_number+1], delta) * \
+                map_of_derivatives["sigmoid"](
+                    np.asanyarray(z_vals[-layer_number]))
+            bias_gradients[-layer_number] = np.mean(
+                delta, axis=1, keepdims=True)
+            weight_gradients[-layer_number] = np.dot(
                 a_vals[-layer_number-1], np.transpose(delta))
-        return self.weight_gradients, self.bias_gradients
+        return weight_gradients, bias_gradients
 
     # def train_network(self, data, learning_rate=0.01, number_of_epochs=15, minibatch_size=64):
     #     for epoch in range(number_of_epochs):
@@ -170,10 +176,10 @@ class network(object):
 
     #         print("****************************************************")
 
-    def train_network(self, data, learning_rate=0.01, number_of_epochs=1, minibatch_size=64):
+    def train_network(self, data, learning_rate=0.01, number_of_epochs=7, minibatch_size=64):
         pixel_values = data[0]
         labels = data[1]
-        temp_list = list(zip(pixel_values, labels))    
+        temp_list = list(zip(pixel_values, labels))
         for epoch in range(number_of_epochs):
             print(epoch+1, " epoch is running")
             print("--------------------------------")
@@ -187,20 +193,25 @@ class network(object):
             for count in range(len(input_batches)):
                 _input = np.transpose(input_batches[count])
                 one_hot_encoded_vectors = np.transpose(label_batches[count])
-                temp_zvals, temp_avals = self.feed_forward(_input)
+                temp_zvals, temp_avals = self.feed_forward(_input, self.weights, self.biases)
                 loss = self.cross_entropy_loss(
                     temp_avals[-1], one_hot_encoded_vectors)
                 w_grad, b_grad = self.backprop(
-                    _input, one_hot_encoded_vectors)
+                    _input, one_hot_encoded_vectors, self.weights, self.biases)
                 for count in range(len(self.weights)):
                     self.weights[count] = self.weights[count] - \
-                        learning_rate*w_grad[count]/minibatch_size
+                        learning_rate*w_grad[count]/self.minibatch_size
+                    # print("************************************")
+                    # print("Wgrads", np.max(np.max(np.abs(w_grad[count]))))
+                    # print("Wself", np.max(np.max(np.abs(self.weights[count]))))
                     self.biases[count] = self.biases[count] - \
-                        learning_rate*b_grad[count]
+                        learning_rate*b_grad[count]/self.minibatch_size
+                    # print("Bgrads", np.max(np.max(np.abs(b_grad[count]))))
+                    # print("Bself", np.max(np.max(np.abs(self.biases[count]))))
+                    # print("************************************")
                 self.minibatch_losses.append(loss)
-            to_test = self.predict(np.transpose(pixel_values))
-            accuracy = ev.accuracy(to_test, labels)
-            print(f"Accuracy is ------------ = {accuracy}")
+                print(f"Loss is ------------ = {loss}")
+
     def predict(self, inputs):
         temp = inputs
         for count in range(len(self.weights)):
