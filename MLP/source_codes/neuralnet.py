@@ -62,7 +62,7 @@ class network(object):
 
     def glorot_initialization(self, fan_in, fan_out):
         dl = np.sqrt(6/(fan_in+fan_out))
-        return np.asarray(np.random.uniform(-dl, dl, (fan_in, fan_out)), dtype=np.float64)
+        return np.asarray(np.random.uniform(-dl, dl, (fan_out, fan_in)), dtype=np.float64)
 
     def cross_entropy_loss(self, x, y):
         return -(y*np.log(x)).mean()
@@ -96,8 +96,8 @@ class network(object):
         avals.append(x)
         temp = x
         for count in range(self.number_of_layers-1):
-            z = np.asanyarray(np.dot(np.transpose(
-                weights[count]), temp))+biases[count]
+            z = np.asanyarray(np.dot(
+                weights[count], temp))+biases[count]
             zvals.append(z)
             a = map_of_functions["softmax"](
                 z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
@@ -133,15 +133,15 @@ class network(object):
             bias_gradients.append(np.zeros_like(biases[count]))
         delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
         bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
-        weight_gradients[-1] = np.dot(a_vals[-2], np.transpose(delta))
+        weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
         for layer_number in range(2, self.number_of_layers):
-            delta = np.dot(weights[-layer_number+1], delta) * \
+            delta = np.dot(np.transpose(weights[-layer_number+1]), delta) * \
                 map_of_derivatives["sigmoid"](
                     np.asanyarray(z_vals[-layer_number]))
             bias_gradients[-layer_number] = np.mean(
                 delta, axis=1, keepdims=True)
             weight_gradients[-layer_number] = np.dot(
-                a_vals[-layer_number-1], np.transpose(delta))
+                delta, np.transpose(a_vals[-layer_number-1]))
         return weight_gradients, bias_gradients
 
     # def train_network(self, data, learning_rate=0.01, number_of_epochs=15, minibatch_size=64):
@@ -176,7 +176,7 @@ class network(object):
 
     #         print("****************************************************")
 
-    def train_network(self, data, learning_rate=0.01, number_of_epochs=7, minibatch_size=64):
+    def train_network(self, data, learning_rate=0.001, number_of_epochs=7, minibatch_size=64):
         pixel_values = data[0]
         labels = data[1]
         temp_list = list(zip(pixel_values, labels))
@@ -193,7 +193,8 @@ class network(object):
             for count in range(len(input_batches)):
                 _input = np.transpose(input_batches[count])
                 one_hot_encoded_vectors = np.transpose(label_batches[count])
-                temp_zvals, temp_avals = self.feed_forward(_input, self.weights, self.biases)
+                temp_zvals, temp_avals = self.feed_forward(
+                    _input, self.weights, self.biases)
                 loss = self.cross_entropy_loss(
                     temp_avals[-1], one_hot_encoded_vectors)
                 w_grad, b_grad = self.backprop(
