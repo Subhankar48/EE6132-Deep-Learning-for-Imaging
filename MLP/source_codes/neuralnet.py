@@ -9,6 +9,7 @@ import evaluations as ev
 
 # for the network mentioned in the assignment
 
+
 class layer(object):
     def __init__(self, no_of_neurons, activation_function='sigmoid'):
         self.size = no_of_neurons
@@ -69,8 +70,8 @@ class network(object):
         dl = np.sqrt(6/(fan_in+fan_out))
         return np.asarray(np.random.uniform(-dl, dl, (fan_out, fan_in)), dtype=np.float64)
 
-    def cross_entropy_loss(self, x, y):
-        return -(y*np.log(x)).mean()
+    def cross_entropy_loss(self, x, y, number_of_training_examples):
+        return -(y*np.log(x)).sum()/number_of_training_examples
 
     def initialize_gradients(self):
         for weight in self.weights:
@@ -88,23 +89,23 @@ class network(object):
             z = np.asanyarray(np.dot(
                 weights[count], temp))+biases[count]
             zvals.append(z)
-            a = map_of_functions["softmax"](
+            a = map_of_functions["linear"](
                 z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
             avals.append(a)
             temp = a
-        return zvals, avals
+        probablities = map_of_functions["softmax"](a)
+        return zvals, avals, probablities
 
     def cross_entropy_derivative_with_softmax(self, y_pred, y_true):
         return y_pred-y_true
 
-    def backprop(self, x, y, weights, biases):
-        z_vals, a_vals = self.feed_forward(x, weights, biases)
-        # self.initialize_gradients()
+    def backprop(self, x, y, weights, biases, z_vals, a_vals, probablities):
         weight_gradients = []
         bias_gradients = []
         for count in range(len(weights)):
             weight_gradients.append(np.zeros_like(weights[count]))
             bias_gradients.append(np.zeros_like(biases[count]))
+        # delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
         delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
         bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
         weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
@@ -118,11 +119,14 @@ class network(object):
                 delta, np.transpose(a_vals[-layer_number-1]))
         return weight_gradients, bias_gradients
 
-    def train_network(self, data, weights, biases, learning_rate=0.001, number_of_epochs=7, minibatch_size=64):
+    def train_network(self, data, weights, biases, learning_rate=0.1, number_of_epochs=15, minibatch_size=64, plot=False):
         weights_to_use = weights
         biases_to_use = biases
+        self.minibatch_losses = []
         pixel_values = data[0]
         labels = data[1]
+        test_pixels = self.test_data[0]
+        test_labels = self.test_data[1]
         temp_list = list(zip(pixel_values, labels))
         for epoch in range(number_of_epochs):
             print(epoch+1, " epoch is running")
@@ -134,15 +138,20 @@ class network(object):
                              for k in range(0, len(pixel_values), minibatch_size)]
             label_batches = [labels[k:k+minibatch_size]
                              for k in range(0, len(labels), minibatch_size)]
+            # print(np.shape(np.transpose(input_batches[0])))
+            predictions = self.predict(np.transpose(test_pixels))
+            ground_truths = np.transpose(test_labels)
+            accuracy = ev.accuracy(predictions, ground_truths)
+            print("Accuracy ---------------", accuracy)
             for counter in range(len(input_batches)):
                 _input = np.transpose(input_batches[counter])
                 one_hot_encoded_vectors = np.transpose(label_batches[counter])
-                temp_zvals, temp_avals = self.feed_forward(
+                temp_zvals, temp_avals, probablities = self.feed_forward(
                     _input, weights_to_use, biases_to_use)
                 loss = self.cross_entropy_loss(
-                    temp_avals[-1], one_hot_encoded_vectors)
+                    probablities, one_hot_encoded_vectors, self.minibatch_size)
                 w_grad, b_grad = self.backprop(
-                    _input, one_hot_encoded_vectors, weights_to_use, biases_to_use)
+                    _input, one_hot_encoded_vectors, weights_to_use, biases_to_use, temp_zvals, temp_avals, probablities)
                 for count in range(len(weights_to_use)):
                     prev_weight = np.copy(weights_to_use[count])
                     weights_to_use[count] -= learning_rate * \
@@ -155,24 +164,35 @@ class network(object):
                     # print("Bgrads", np.max(np.max(np.abs(b_grad[count]))))
                     # print("Bself", np.max(np.max(np.abs(self.biases[count]))))
                     # print("************************************")
-                    print("------------------------------------------")
-                    print("bias in loop ----------------",
-                          biases_to_use[count][:5])
-                    print("Gradient ---------------", learning_rate *
-                          b_grad[count][:5])
-                    print("------------------------------------------")
-                # self.minibatch_losses.append(loss)
+                    # if (count == 1):
+                    #     print("------------------------------------------")
+                    #     print("weights ----------------",
+                    #         weights_to_use[count][:5, 0])
+                    #     print("Gradient ---------------", learning_rate *
+                    #         w_grad[count][:5, 0]/self.minibatch_size)
+                    #     print("------------------------------------------")
+                    
+                self.minibatch_losses.append(loss)
                 # print(f"Loss is ------------ = {loss}")
+            self.weights = weights_to_use
+            self.biases = biases_to_use
+
+        if (plot):
+            self.plotter()
+        
+
 
     def predict(self, inputs):
-        temp = inputs
-        for count in range(len(self.weights)):
-            z = np.dot(np.transpose(
-                self.weights[count]), temp)+self.biases[count]
-            a = map_of_functions["softmax"](
-                z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
-            temp = a
-        return (temp == np.max(temp, axis=0))*np.ones_like(temp)
+        # temp = inputs
+        # for count in range(len(self.weights)):
+        #     z = np.dot(np.transpose(
+        #         self.weights[count]), temp)+self.biases[count]
+        #     a = map_of_functions["linear"](
+        #         z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
+        #     temp = a
+        # probablities = temp
+        a_vals, z_vals, probablities = self.feed_forward(inputs, self.weights, self.biases)
+        return (probablities == np.max(probablities, axis=0))*np.ones_like(probablities)
 
     def plotter(self):
         plt.plot(self.minibatch_losses)

@@ -82,6 +82,11 @@ def derivative_of_softmax(x):
 
     return act.softmax(x)*(1-act.softmax(x))
 
+def derivative_of_linear(x):
+
+
+    return 1
+
 
 map_of_derivatives = {"sigmoid": derivative_of_sigmoid, "ReLU": derivative_of_ReLU,
-                      "softmax": derivative_of_softmax, "tanh": derivative_of_tanh}
+                      "softmax": derivative_of_softmax, "tanh": derivative_of_tanh, "linear": derivative_of_linear}

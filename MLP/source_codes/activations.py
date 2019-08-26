@@ -76,6 +76,15 @@ def softmax(x):
 
     return np.exp(x)/np.sum(np.exp(x))
 
+def self(x):
+    """
+    Linear activation
+    Returns x as it is
+    
+    """
+
+    return x
+
 
 map_of_functions = {"sigmoid": sigmoid,
-                    "ReLU": ReLU, "softmax": softmax, "tanh": tanh}
+                    "ReLU": ReLU, "softmax": softmax, "tanh": tanh, "linear" : self}
