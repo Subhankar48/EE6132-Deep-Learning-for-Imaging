@@ -6,7 +6,7 @@ import downloader
 import random
 import matplotlib.pyplot as plt
 import evaluations as ev
-
+from feature_extractor_and_pre_processing import mean_normalize
 # for the network mentioned in the assignment
 
 
@@ -14,7 +14,7 @@ class layer(object):
     def __init__(self, no_of_neurons, activation_function='sigmoid'):
         self.size = no_of_neurons
 
-        if activation_function in ["sigmoid", "ReLU", "softmax", "tanh"]:
+        if activation_function in ["tanh", "sigmoid", "softmax", "ReLU"]:
             self.activation = map_of_functions[activation_function]
             self.derivative = map_of_derivatives[activation_function]
 
@@ -71,7 +71,9 @@ class network(object):
         return np.asarray(np.random.uniform(-dl, dl, (fan_out, fan_in)), dtype=np.float64)
 
     def cross_entropy_loss(self, x, y, number_of_training_examples):
-        return -(y*np.log(x)).sum()/number_of_training_examples
+        _min = np.min(np.abs(x[np.nonzero(x)]))
+        small_number = 1e-12
+        return -(y*np.log(x+small_number)).sum()/number_of_training_examples
 
     def initialize_gradients(self):
         for weight in self.weights:
@@ -90,7 +92,7 @@ class network(object):
                 weights[count], temp))+biases[count]
             zvals.append(z)
             a = map_of_functions["linear"](
-                z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
+                z) if count == self.number_of_layers-2 else map_of_functions["tanh"](z)
             avals.append(a)
             temp = a
         probablities = map_of_functions["softmax"](a)
@@ -111,7 +113,7 @@ class network(object):
         weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
         for layer_number in range(2, self.number_of_layers):
             delta = np.dot(np.transpose(weights[-layer_number+1]), delta) * \
-                map_of_derivatives["sigmoid"](
+                map_of_derivatives["tanh"](
                     np.asanyarray(z_vals[-layer_number]))
             bias_gradients[-layer_number] = np.mean(
                 delta, axis=1, keepdims=True)
@@ -119,13 +121,13 @@ class network(object):
                 delta, np.transpose(a_vals[-layer_number-1]))
         return weight_gradients, bias_gradients
 
-    def train_network(self, data, weights, biases, learning_rate=0.1, number_of_epochs=15, minibatch_size=64, plot=False):
+    def train_network(self, data, weights, biases, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False):
         weights_to_use = weights
         biases_to_use = biases
         self.minibatch_losses = []
-        pixel_values = data[0]
+        pixel_values = mean_normalize(data[0], 0 ,255)
         labels = data[1]
-        test_pixels = self.test_data[0]
+        test_pixels = mean_normalize(self.test_data[0], 0, 255)
         test_labels = self.test_data[1]
         temp_list = list(zip(pixel_values, labels))
         for epoch in range(number_of_epochs):

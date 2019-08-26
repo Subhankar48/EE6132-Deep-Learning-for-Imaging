@@ -61,7 +61,7 @@ def derivative_of_tanh(x):
 
     """
 
-    return 1 - act.tanh(x)**2
+    return 1 - np.tanh(x)**2
 
 
 def derivative_of_softmax(x):

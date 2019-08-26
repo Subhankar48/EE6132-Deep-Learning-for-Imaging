@@ -55,7 +55,7 @@ def tanh(x):
 
     """
 
-    return (np.exp(x)-np.exp(-x))/(np.exp(x)+np.exp(-x))
+    return np.tanh(x)
 
 
 def softmax(x):
@@ -73,8 +73,8 @@ def softmax(x):
     softmax probabilities - scalar or vector
 
     """
-
-    return np.exp(x)/np.sum(np.exp(x))
+    exps = np.exp(x-np.max(x))
+    return exps/np.sum(exps)
 
 def self(x):
     """
