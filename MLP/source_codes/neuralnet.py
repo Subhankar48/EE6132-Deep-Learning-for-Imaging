@@ -177,7 +177,6 @@ class network(object):
                     _input, one_hot_encoded_vectors, weights_to_use, biases_to_use, temp_zvals, temp_avals, probablities, add_noise_in_back_prop, noise_std_dev_backprop)
 
                 for count in range(len(weights_to_use)):
-                    prev_weight = np.copy(weights_to_use[count])
                     weights_to_use[count] -= learning_rate * \
                         w_grad[count]/self.minibatch_size
                     biases_to_use[count] -= learning_rate * \

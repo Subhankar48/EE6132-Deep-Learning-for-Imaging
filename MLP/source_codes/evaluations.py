@@ -6,10 +6,10 @@ def accuracy(y_pred, y_true):
     return matching_colums/total_coulmns
 
 def precision(y_pred, y_true):
-    (y_pred*y_true).sum()/(y_pred).sum()
+    return (y_pred*y_true).sum()/(y_pred).sum()
 
 def recall(y_pred, y_true):
-    (y_pred*y_true).sum()/(y_true).sum()
+    return (y_pred*y_true).sum()/(y_true).sum()
 
 def f1_score(y_pred, y_true):
     _precision = precision(y_pred,y_true)
