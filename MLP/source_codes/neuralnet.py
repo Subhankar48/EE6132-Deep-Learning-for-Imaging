@@ -7,20 +7,6 @@ import random
 import matplotlib.pyplot as plt
 import evaluations as ev
 from feature_extractor_and_pre_processing import mean_normalize
-# for the network mentioned in the assignment
-
-
-class layer(object):
-    def __init__(self, no_of_neurons, activation_function='sigmoid'):
-        self.size = no_of_neurons
-
-        if activation_function in ["tanh", "sigmoid", "softmax", "ReLU"]:
-            self.activation = map_of_functions[activation_function]
-            self.derivative = map_of_derivatives[activation_function]
-
-        else:
-            print("The activation function mentioned does not exist.")
-            sys.exit(0)
 
 
 class network(object):
@@ -107,7 +93,6 @@ class network(object):
         for count in range(len(weights)):
             weight_gradients.append(np.zeros_like(weights[count]))
             bias_gradients.append(np.zeros_like(biases[count]))
-        # delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
         delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
         bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
         weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
@@ -125,7 +110,7 @@ class network(object):
         weights_to_use = weights
         biases_to_use = biases
         self.minibatch_losses = []
-        pixel_values = mean_normalize(data[0], 0 ,255)
+        pixel_values = mean_normalize(data[0], 0, 255)
         labels = data[1]
         test_pixels = mean_normalize(self.test_data[0], 0, 255)
         test_labels = self.test_data[1]
@@ -140,7 +125,6 @@ class network(object):
                              for k in range(0, len(pixel_values), minibatch_size)]
             label_batches = [labels[k:k+minibatch_size]
                              for k in range(0, len(labels), minibatch_size)]
-            # print(np.shape(np.transpose(input_batches[0])))
             predictions = self.predict(np.transpose(test_pixels))
             ground_truths = np.transpose(test_labels)
             accuracy = ev.accuracy(predictions, ground_truths)
@@ -158,22 +142,8 @@ class network(object):
                     prev_weight = np.copy(weights_to_use[count])
                     weights_to_use[count] -= learning_rate * \
                         w_grad[count]/self.minibatch_size
-                    # print("************************************")
-                    # print("Wgrads", np.max(np.max(np.abs(w_grad[count]))))
-                    # print("Wself", np.max(np.max(np.abs(self.weights[count]))))
                     biases_to_use[count] -= learning_rate * \
                         b_grad[count]
-                    # print("Bgrads", np.max(np.max(np.abs(b_grad[count]))))
-                    # print("Bself", np.max(np.max(np.abs(self.biases[count]))))
-                    # print("************************************")
-                    # if (count == 1):
-                    #     print("------------------------------------------")
-                    #     print("weights ----------------",
-                    #         weights_to_use[count][:5, 0])
-                    #     print("Gradient ---------------", learning_rate *
-                    #         w_grad[count][:5, 0]/self.minibatch_size)
-                    #     print("------------------------------------------")
-                    
                 self.minibatch_losses.append(loss)
                 # print(f"Loss is ------------ = {loss}")
             self.weights = weights_to_use
@@ -181,19 +151,10 @@ class network(object):
 
         if (plot):
             self.plotter()
-        
-
 
     def predict(self, inputs):
-        # temp = inputs
-        # for count in range(len(self.weights)):
-        #     z = np.dot(np.transpose(
-        #         self.weights[count]), temp)+self.biases[count]
-        #     a = map_of_functions["linear"](
-        #         z) if count == self.number_of_layers-2 else map_of_functions["sigmoid"](z)
-        #     temp = a
-        # probablities = temp
-        a_vals, z_vals, probablities = self.feed_forward(inputs, self.weights, self.biases)
+        a_vals, z_vals, probablities = self.feed_forward(
+            inputs, self.weights, self.biases)
         return (probablities == np.max(probablities, axis=0))*np.ones_like(probablities)
 
     def plotter(self):
