@@ -6,7 +6,7 @@ import downloader
 import random
 import matplotlib.pyplot as plt
 import evaluations as ev
-from feature_extractor_and_pre_processing import mean_normalize
+from image_transformations import mean_normalize
 import regularization as re
 
 class network(object):
@@ -152,7 +152,11 @@ class network(object):
                 # print(f"Loss is ------------ = {loss}")
             self.weights = weights_to_use
             self.biases = biases_to_use
-
+            if (epoch == number_of_epochs-1):
+                predictions = self.predict(np.transpose(test_pixels))
+                ground_truths = np.transpose(test_labels)
+                accuracy = ev.accuracy(predictions, ground_truths)
+                print("Accuracy ---------------", accuracy)
         if (plot):
             self.plotter()
 
@@ -178,5 +182,4 @@ a = network([784, 500, 250, 100, 10])
 a.get_data()
 a.initialize_gradients()
 weights, biases = a.initialize_weights()
-a.train_network(a.training_data, weights, biases, add_noise_in_back_prop=True, noise_std_dev_backprop=0.1)
-# a.plotter()
+a.train_network(a.training_data, weights, biases)
