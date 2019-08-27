@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import evaluations as ev
 from image_transformations import mean_normalize
 import regularization as re
+from image_transformations import add_noise_to_image
+import matplotlib.pyplot as plt
 
 class network(object):
 
@@ -78,8 +80,8 @@ class network(object):
                 weights[count], temp))+biases[count]
             zvals.append(z)
             a = map_of_functions["linear"](
-                z) if count == self.number_of_layers-2 else map_of_functions["tanh"](z)
-            if ((add_noise)&(count!=self.number_of_layers-2)):
+                z) if count == self.number_of_layers-2 else map_of_functions["ReLU"](z)
+            if ((add_noise) & (count != self.number_of_layers-2)):
                 a = re.add_noise(a, std_dev=noise_std_dev)
             avals.append(a)
             temp = a
@@ -100,17 +102,18 @@ class network(object):
         weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
         for layer_number in range(2, self.number_of_layers):
             delta = np.dot(np.transpose(weights[-layer_number+1]), delta) * \
-                map_of_derivatives["tanh"](
+                map_of_derivatives["ReLU"](
                     np.asanyarray(z_vals[-layer_number]))
             bias_gradients[-layer_number] = np.mean(
                 delta, axis=1, keepdims=True)
             if (add_noise):
-                a_vals[-layer_number-1] = re.add_noise(a_vals[-layer_number-1], noise_std_dev)
+                a_vals[-layer_number -
+                       1] = re.add_noise(a_vals[-layer_number-1], noise_std_dev)
             weight_gradients[-layer_number] = np.dot(
                 delta, np.transpose(a_vals[-layer_number-1]))
         return weight_gradients, bias_gradients
 
-    def train_network(self, data, weights, biases, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False, add_noise_in_forward_prop=False, add_noise_in_back_prop=False, noise_std_dev_feed_forward=0.01, noise_std_dev_backprop=0.01):
+    def train_network(self, data, weights, biases, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False, add_noise_in_forward_prop=False, add_noise_in_back_prop=False, noise_std_dev_feed_forward=0.01, noise_std_dev_backprop=0.01, add_noisy_dataset_for_training=False, std_dev_of_noise_to_add_for_noisy_dataset=0.01):
         weights_to_use = weights
         biases_to_use = biases
         self.minibatch_losses = []
@@ -118,7 +121,12 @@ class network(object):
         labels = data[1]
         test_pixels = mean_normalize(self.test_data[0], 0, 255)
         test_labels = self.test_data[1]
-        temp_list = list(zip(pixel_values, labels))
+        if (add_noisy_dataset_for_training):
+            noisy_images = add_noise_to_image(
+                pixel_values, std_dev_of_noise_to_add_for_noisy_dataset)
+            pixel_values = np.vstack((pixel_values, noisy_images))
+            labels = np.vstack((labels, labels))
+
         for epoch in range(number_of_epochs):
             print(epoch+1, " epoch is running")
             print("--------------------------------")
@@ -182,4 +190,4 @@ a = network([784, 500, 250, 100, 10])
 a.get_data()
 a.initialize_gradients()
 weights, biases = a.initialize_weights()
-a.train_network(a.training_data, weights, biases)
+a.train_network(a.training_data, weights, biases, add_noisy_dataset_for_training=True, std_dev_of_noise_to_add_for_noisy_dataset=1)
