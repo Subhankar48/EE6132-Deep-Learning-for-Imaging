@@ -104,6 +104,8 @@ class network(object):
                     np.asanyarray(z_vals[-layer_number]))
             bias_gradients[-layer_number] = np.mean(
                 delta, axis=1, keepdims=True)
+            if (add_noise):
+                a_vals[-layer_number-1] = re.add_noise(a_vals[-layer_number-1], noise_std_dev)
             weight_gradients[-layer_number] = np.dot(
                 delta, np.transpose(a_vals[-layer_number-1]))
         return weight_gradients, bias_gradients
@@ -176,5 +178,5 @@ a = network([784, 500, 250, 100, 10])
 a.get_data()
 a.initialize_gradients()
 weights, biases = a.initialize_weights()
-a.train_network(a.training_data, weights, biases, add_noise_in_forward_prop=False, noise_std_dev_feed_forward=1)
+a.train_network(a.training_data, weights, biases, add_noise_in_back_prop=True, noise_std_dev_backprop=0.1)
 # a.plotter()
