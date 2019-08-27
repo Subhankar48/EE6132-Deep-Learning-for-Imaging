@@ -7,7 +7,7 @@ import random
 import matplotlib.pyplot as plt
 import evaluations as ev
 from feature_extractor_and_pre_processing import mean_normalize
-
+import regularization as re
 
 class network(object):
 
@@ -79,6 +79,8 @@ class network(object):
             zvals.append(z)
             a = map_of_functions["linear"](
                 z) if count == self.number_of_layers-2 else map_of_functions["tanh"](z)
+            if ((add_noise)&(count!=self.number_of_layers-2)):
+                a = re.add_noise(a, std_dev=noise_std_dev)
             avals.append(a)
             temp = a
         probablities = map_of_functions["softmax"](a)
@@ -174,5 +176,5 @@ a = network([784, 500, 250, 100, 10])
 a.get_data()
 a.initialize_gradients()
 weights, biases = a.initialize_weights()
-a.train_network(a.training_data, weights, biases)
+a.train_network(a.training_data, weights, biases, add_noise_in_forward_prop=False, noise_std_dev_feed_forward=1)
 # a.plotter()
