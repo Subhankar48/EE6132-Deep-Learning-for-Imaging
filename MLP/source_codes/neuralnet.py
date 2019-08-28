@@ -122,7 +122,7 @@ class network(object):
 
         return weight_gradients, bias_gradients
 
-    def train_network(self, data, weights, biases, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False, add_noise_in_forward_prop=False, add_noise_in_back_prop=False, noise_std_dev_feed_forward=0.01, noise_std_dev_backprop=0.01, add_noisy_dataset_for_training=False, std_dev_of_noise_to_add_for_noisy_dataset=0.01, feature_extract=False, transform="hog", shape_after_transform=(-1), regularization_type="None"):
+    def train_network(self, data, weights, biases, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False, add_noise_in_forward_prop=False, add_noise_in_back_prop=False, noise_std_dev_feed_forward=0.01, noise_std_dev_backprop=0.01, add_noisy_dataset_for_training=False, std_dev_of_noise_to_add_for_noisy_dataset=0.01, feature_extract=False, transform="hog", shape_after_transform=(-1), regularization=False, _lambda=0):
         weights_to_use = weights
         biases_to_use = biases
         self.minibatch_losses = []
@@ -165,13 +165,20 @@ class network(object):
                 one_hot_encoded_vectors = np.transpose(label_batches[counter])
                 temp_zvals, temp_avals, probablities = self.feed_forward(
                     _input, weights_to_use, biases_to_use, add_noise_in_forward_prop, noise_std_dev_feed_forward)
-                loss = re.cross_entropy_loss(probablities, one_hot_encoded_vectors, self.minibatch_size)
+                if (regularization):
+                    loss = re.cost_with_L2_regularization(probablities, one_hot_encoded_vectors, weights_to_use, _lambda, self.minibatch_size)
+                else:
+                    loss = re.cross_entropy_loss(probablities, one_hot_encoded_vectors, self.minibatch_size)
                 w_grad, b_grad = self.backprop(
                     _input, one_hot_encoded_vectors, weights_to_use, biases_to_use, temp_zvals, temp_avals, probablities, add_noise_in_back_prop, noise_std_dev_backprop)
 
                 for count in range(len(weights_to_use)):
-                    weights_to_use[count] -= learning_rate * \
-                        w_grad[count]/self.minibatch_size
+                    if (regularization):
+                        constant = 1-learning_rate*_lambda/self.minibatch_size
+                        weights_to_use[count] = constant*weights_to_use[count] 
+
+                    weights_to_use[count] = weights_to_use[count] - learning_rate*w_grad[count]/self.minibatch_size
+                    
                     biases_to_use[count] -= learning_rate * \
                         b_grad[count]
 
