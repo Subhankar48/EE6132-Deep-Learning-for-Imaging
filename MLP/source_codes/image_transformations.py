@@ -10,6 +10,9 @@ def add_noise_to_image(x, std_dev = 0.01):
     return x+noise
 
 def hog_transform(image, number_of_bins = 10, pixels_per_cell_=(7,8)):
+    """
+    Returns a hog feature vector of length 180
+    """
     return hog(image, orientations=number_of_bins, pixels_per_cell=pixels_per_cell_)
 
 map_of_transforms = {"hog": hog_transform}
