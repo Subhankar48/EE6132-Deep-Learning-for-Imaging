@@ -2,4 +2,4 @@ numpy
 matplotlib
 scipy
 python-mnist
-os
+wget
