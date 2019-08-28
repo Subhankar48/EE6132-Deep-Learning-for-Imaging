@@ -11,7 +11,8 @@ import regularization as re
 from image_transformations import add_noise_to_image
 import matplotlib.pyplot as plt
 import image_transformations as img
-
+import importlib
+importlib.reload(re)
 
 class network(object):
 
@@ -62,13 +63,6 @@ class network(object):
 
         dl = np.sqrt(6/(fan_in+fan_out))
         return np.asarray(np.random.uniform(-dl, dl, (fan_out, fan_in)), dtype=np.float64)
-
-    def cross_entropy_loss(self, x, y, number_of_training_examples):
-
-        _min = np.min(np.abs(x[np.nonzero(x)]))
-        small_number = 1e-12
-
-        return -(y*np.log(x+small_number)).sum()/number_of_training_examples
 
     def initialize_gradients(self):
 
@@ -128,7 +122,7 @@ class network(object):
 
         return weight_gradients, bias_gradients
 
-    def train_network(self, data, weights, biases, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False, add_noise_in_forward_prop=False, add_noise_in_back_prop=False, noise_std_dev_feed_forward=0.01, noise_std_dev_backprop=0.01, add_noisy_dataset_for_training=False, std_dev_of_noise_to_add_for_noisy_dataset=0.01, feature_extract=False, transform="hog", shape_after_transform=(-1)):
+    def train_network(self, data, weights, biases, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False, add_noise_in_forward_prop=False, add_noise_in_back_prop=False, noise_std_dev_feed_forward=0.01, noise_std_dev_backprop=0.01, add_noisy_dataset_for_training=False, std_dev_of_noise_to_add_for_noisy_dataset=0.01, feature_extract=False, transform="hog", shape_after_transform=(-1), regularization_type="None"):
         weights_to_use = weights
         biases_to_use = biases
         self.minibatch_losses = []
@@ -171,8 +165,7 @@ class network(object):
                 one_hot_encoded_vectors = np.transpose(label_batches[counter])
                 temp_zvals, temp_avals, probablities = self.feed_forward(
                     _input, weights_to_use, biases_to_use, add_noise_in_forward_prop, noise_std_dev_feed_forward)
-                loss = self.cross_entropy_loss(
-                    probablities, one_hot_encoded_vectors, self.minibatch_size)
+                loss = re.cross_entropy_loss(probablities, one_hot_encoded_vectors, self.minibatch_size)
                 w_grad, b_grad = self.backprop(
                     _input, one_hot_encoded_vectors, weights_to_use, biases_to_use, temp_zvals, temp_avals, probablities, add_noise_in_back_prop, noise_std_dev_backprop)
 
