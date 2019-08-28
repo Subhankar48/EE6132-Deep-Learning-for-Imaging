@@ -93,7 +93,7 @@ class network(object):
                 z) if count == self.number_of_layers-2 else map_of_functions["ReLU"](z)
 
             if ((add_noise) & (count != self.number_of_layers-2)):
-                a = re.add_noise(a, std_dev=noise_std_dev)
+                a = re.add_noise_during_prop(a, std_dev=noise_std_dev)
             avals.append(a)
             temp = a
         probablities = map_of_functions["softmax"](a)
@@ -122,7 +122,7 @@ class network(object):
 
             if (add_noise):
                 a_vals[-layer_number -
-                       1] = re.add_noise(a_vals[-layer_number-1], noise_std_dev)
+                       1] = re.add_noise_during_prop(a_vals[-layer_number-1], noise_std_dev)
             weight_gradients[-layer_number] = np.dot(
                 delta, np.transpose(a_vals[-layer_number-1]))
 
