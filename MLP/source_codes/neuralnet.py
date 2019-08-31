@@ -215,8 +215,8 @@ class network(object):
         self._f1_score = ev.f1_score(predictions, y_vals)
 
 
-a = network([784, 500, 250, 100, 10])
-a.get_data()
-a.initialize_gradients()
-weights, biases = a.initialize_weights()
-a.train_network(a.training_data, weights, biases)
+# a = network([784, 500, 250, 100, 10])
+# a.get_data()
+# a.initialize_gradients()
+# weights, biases = a.initialize_weights()
+# a.train_network(a.training_data, weights, biases)
