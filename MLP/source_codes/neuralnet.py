@@ -104,9 +104,9 @@ class network(object):
             weight_gradients.append(np.zeros_like(weights[count]))
             bias_gradients.append(np.zeros_like(biases[count]))
             delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
-            bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
-            weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
-
+        
+        bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
+        weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
         for layer_number in range(2, self.number_of_layers):
             delta = np.dot(np.transpose(weights[-layer_number+1]), delta) * \
                 map_of_derivatives["ReLU"](
