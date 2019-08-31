@@ -56,8 +56,10 @@ class network(object):
 
         return weights, biases
 
-    def get_data(self):
-        self.training_data, self.test_data = downloader.download()
+    def get_data(self, _train_data, _test_data):
+        # self.training_data, self.test_data = downloader.download()
+        self.training_data = _train_data
+        self.test_data = _test_data
 
     def glorot_initialization(self, fan_in, fan_out):
 

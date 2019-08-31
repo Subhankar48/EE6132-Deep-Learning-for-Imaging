@@ -12,8 +12,9 @@ def convert_one_hot_encoded_vectors_to_labels(one_hot_encoded_vector, _axis=1):
 
 class classifier(object):
 
-    def __init__(self, use_feature_maps=True, feature="hog"):
-        self.training_data, self.test_data = downloader.download()
+    def __init__(self,_train_data, _test_data,  use_feature_maps=True, feature="hog"):
+        self.training_data = _train_data 
+        self.test_data = _test_data
         self.use_features = use_feature_maps
         self.feature = feature
         self.inputs = self.training_data[0]
