@@ -153,7 +153,9 @@ def question_3():
     learning_rate = 0.01
     choices = ["1", "2"]
     back_words = ["b", 'B', 'back', 'Back', 'BACK']
-    forward_words = ['f', 'F', 'Forward', 'forward', 'FORWARD'] 
+    forward_words = ['f', 'F', 'Forward', 'forward', 'FORWARD']
+    noise_words = ['n', 'N', 'Noise', 'noise']
+    regularization_words = ['r', 'R', 'Regularization', 'l2', 'L2', 'regularization' ] 
     choice = input("\n")
     while(choice not in choices):
         print("Invalid value encountered. Plese try again.")
@@ -236,7 +238,33 @@ def question_3():
                 print("Could not understand input.")
             pass
 
-    pass
+        else:
+            print("Non recognized choice. Please try again.")
+
+    elif (choice ==2):
+        _lambda= 0.1
+        noise_std_dev = 0.1
+        print("Here we see the effects of data augmentation and regularization.")
+        print("We use L2 regularization and use noise addition for data augmentation.")
+        print("Select what you wan tto se first.")
+        print("select n for seeing the effects of adding noise and r for seeing the effects of L2 regularization.")
+
+        choice_ = input("\n")
+        if (choice_ in noise_words):
+            print("We are using gaussian noise with standard deviation ", noise_std_dev)
+            print("Note that the training process will be slightly slower as the data samples have doubled.")
+            print("Using ReLU as actvation function.")
+            print("The learning rate used is ", learning_rate)
+            print("Initializing network.................")
+            augmented_network = nn.network([784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+            print("Initialize weights and biases.......")
+            weights, biases = augmented_network.initialize_weights()
+            print("Training the network........")
+            pass
+        elif (choice_ in regularization_words):
+            pass
+        else:
+            print("Non recognized choice. Please try again.")
 
 
 def question_4():
