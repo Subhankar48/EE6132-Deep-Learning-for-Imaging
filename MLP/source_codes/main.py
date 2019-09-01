@@ -25,9 +25,11 @@ no = ["n", "N"]
 
 
 def question_1():
+    learning_rate = 0.08
     print("The default neural network is used here.")
     print(
         "The layer sizes are [784, 500, 250, 100, 10] with the first and last being the input and output layers respectively.")
+    print("Using a learning rate of ", learning_rate)
     print("The activation function used is sigmoid.\n")
     print("Initializing network...............")
     baseline_model = nn.network(
@@ -36,27 +38,111 @@ def question_1():
     weights, biases = baseline_model.initialize_weights()
     print("Training the network........")
     baseline_model.train_network(
-        TRAINING_DATA, weights, biases, 0.01, 15, 64, True)
+        TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, False, 0, 0, False, 0, False, "None", (-1), False, 0, "sigmoid")
     print("Enter if you want to see other parameters like precision, recall, f1 score.")
     print("Enter y if yes or n otherwise.")
-    choice = input()
+    choice = input("\n")
     if (choice in yes):
         print("Precision -------", baseline_model._precision)
         print("Recall----------------", baseline_model._recall)
         print("F1 score -------------------------",
               baseline_model._f1_score)
-    else:
+    elif (choice in no):
         pass
+    else:
+        print("Could not understand input.")
     print("Enter if you want to see the confusion matrix.")
     print("Enter y for yes and n for no.")
-    choice = input()
+    choice = input("\n")
     if (choice in yes):
         print("Confusion Matrix")
         print(baseline_model._confusion_mat)
+    elif (choice in no):
+        pass
+    else:
+        print("Could not understand input.")
 
 
 def question_2():
-    pass
+    relu_names = ["ReLU", "relu", 'r', "R", 'Relu']
+    tanh_names = ['tanh', 't', "T", "Tanh"]
+    print("In this section we experiment with the different activation types. We choose between tanh and ReLU.")
+    print("Choose the activation function you want to try.")
+    print("Select r for ReLU and t for tanh.")
+    choice = input("\n")
+    if (choice in relu_names):
+        learning_rate = 0.01
+        print("Using ReLU as actvation function.")
+        print("The learning rate used is ", learning_rate)
+        print("Initializing network.................")
+        relu_model = nn.network(
+            [784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+        print("Initialize weights and biases.......")
+        weights, biases = relu_model.initialize_weights()
+        print("Training the network........")
+        relu_model.train_network(TRAINING_DATA, weights, biases, 0.01, 15, 64, True,
+                                 False, False, 0, 0, False, 0, False, "None", (-1), False, 0, 'ReLU')
+        print("Enter if you want to see other parameters like precision, recall, f1 score.")
+        print("Enter y if yes or n otherwise.")
+        choice = input("\n")
+        if (choice in yes):
+            print("Precision -------", relu_model._precision)
+            print("Recall----------------", relu_model._recall)
+            print("F1 score -------------------------",
+                  relu_model._f1_score)
+        elif (choice in no):
+            pass
+        else:
+            print("Could not understand input.")
+        print("Enter if you want to see the confusion matrix.")
+        print("Enter y for yes and n for no.")
+        choice = input("\n")
+        if (choice in yes):
+            print("Confusion Matrix")
+            print(relu_model._confusion_mat)
+        elif (choice in no):
+            pass
+        else:
+            print("Could not understand input.")
+
+    elif (choice in tanh_names):
+        learning_rate = 0.01
+        print("Using tanh as actvation function.")
+        print("The learning rate used is ", learning_rate)
+        print("Initializing network.................")
+        tanh_model = nn.network(
+            [784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+        print("Initialize weights and biases.......")
+        weights, biases = tanh_model.initialize_weights()
+        print("Training the network........")
+        tanh_model.train_network(TRAINING_DATA, weights, biases, 0.01, 15, 64, True,
+                                 False, False, 0, 0, False, 0, False, "None", (-1), False, 0, 'ReLU')
+        print("Enter if you want to see other parameters like precision, recall, f1 score.")
+        print("Enter y if yes or n otherwise.")
+        choice = input("\n")
+        if (choice in yes):
+            print("Precision -------", tanh_model._precision)
+            print("Recall----------------", tanh_model._recall)
+            print("F1 score -------------------------",
+                  tanh_model._f1_score)
+        elif (choice in no):
+            pass
+        else:
+            print("Could not understand input.")
+        print("Enter if you want to see the confusion matrix.")
+        print("Enter y for yes and n for no.")
+        choice = input("\n")
+        if (choice in yes):
+            print("Confusion Matrix")
+            print(tanh_model._confusion_mat)
+        elif (choice in no):
+            pass
+        else:
+            print("Could not understand input.")
+        pass
+    
+    else:
+        print("Could not understand the choice.")
 
 
 def question_3():
@@ -72,7 +158,7 @@ def question_4():
     print("The feature vector being used is a 180 length HOG feature vector extracted using skimage.")
     print("Choose what you want to see first.")
     print("Enter 1 for the neural network or 2 for the classifiers.")
-    chosen_number = int(input())
+    chosen_number = int(input("\n"))
     if(chosen_number == 1):
         print(
             "The neuralnetwork used is of the architecture [180, 120, 60, 25, 10] where the first and last are input and output layers respectively and the others are hidden layers.")
@@ -88,7 +174,7 @@ def question_4():
             TRAINING_DATA, weights, biases, 0.01, 15, 64, True, False, False, 0, 0, False, 0, True, 'hog')
         print("Enter if you want to see other parameters like precision, recall, f1 score.")
         print("Enter y if yes or n otherwise.")
-        choice = input()
+        choice = input("\n")
         if (choice in yes):
             print("Precision -------", self_chosen_network._precision)
             print("Recall----------------", self_chosen_network._recall)
@@ -98,14 +184,14 @@ def question_4():
             pass
         print("Enter if you want to see the confusion matrix.")
         print("Enter y for yes and n for no.")
-        choice = input()
+        choice = input("\n")
         if (choice in yes):
             print("Confusion Matrix")
             print(self_chosen_network._confusion_mat)
     elif(chosen_number == 2):
         print("Choose the type of classifier.")
         print("Enter 'svm' (without the quotes) for svm classifier and 'knn' for the knn classifier.")
-        type_of_classifier = input()
+        type_of_classifier = input("\n")
         if (type_of_classifier in svm_words):
             try:
                 print("Initializing the classifier........")
@@ -126,7 +212,7 @@ def question_4():
                 print("Enter the number of neighbors you want (default 5).")
                 print("Just press enter if you want to stick to the default value.")
                 try:
-                    neighbors = int(input())
+                    neighbors = int(input("\n"))
                 except:
                     neighbors = 5
             except KeyboardInterrupt:
