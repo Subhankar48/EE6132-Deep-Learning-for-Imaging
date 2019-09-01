@@ -14,6 +14,7 @@ import image_transformations as img
 import importlib
 importlib.reload(re)
 
+
 class network(object):
 
     layer_sizes = []
@@ -33,9 +34,11 @@ class network(object):
     _f1_score = 0
     minibatch_size = 64
 
-    def __init__(self, sizes):
+    def __init__(self, sizes, train_data, _test_data):
         if (len(sizes) > 0):
             self.layer_sizes = sizes
+            self.training_data = train_data
+            self.test_data = _test_data
         else:
             print("There is no hidden layer. Not a valid neural network.")
             sys.exit(0)
@@ -55,11 +58,6 @@ class network(object):
         self.number_of_layers = len(self.weights)+1
 
         return weights, biases
-
-    def get_data(self, _train_data, _test_data):
-        # self.training_data, self.test_data = downloader.download()
-        self.training_data = _train_data
-        self.test_data = _test_data
 
     def glorot_initialization(self, fan_in, fan_out):
 
@@ -105,8 +103,8 @@ class network(object):
         for count in range(len(weights)):
             weight_gradients.append(np.zeros_like(weights[count]))
             bias_gradients.append(np.zeros_like(biases[count]))
-            delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
-        
+
+        delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
         bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
         weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
         for layer_number in range(2, self.number_of_layers):
@@ -168,19 +166,22 @@ class network(object):
                 temp_zvals, temp_avals, probablities = self.feed_forward(
                     _input, weights_to_use, biases_to_use, add_noise_in_forward_prop, noise_std_dev_feed_forward)
                 if (regularization):
-                    loss = re.cost_with_L2_regularization(probablities, one_hot_encoded_vectors, weights_to_use, _lambda, self.minibatch_size)
+                    loss = re.cost_with_L2_regularization(
+                        probablities, one_hot_encoded_vectors, weights_to_use, _lambda, self.minibatch_size)
                 else:
-                    loss = re.cross_entropy_loss(probablities, one_hot_encoded_vectors, self.minibatch_size)
+                    loss = re.cross_entropy_loss(
+                        probablities, one_hot_encoded_vectors, self.minibatch_size)
                 w_grad, b_grad = self.backprop(
                     _input, one_hot_encoded_vectors, weights_to_use, biases_to_use, temp_zvals, temp_avals, probablities, add_noise_in_back_prop, noise_std_dev_backprop)
 
                 for count in range(len(weights_to_use)):
                     if (regularization):
                         constant = 1-learning_rate*_lambda/self.minibatch_size
-                        weights_to_use[count] = constant*weights_to_use[count] 
+                        weights_to_use[count] = constant*weights_to_use[count]
 
-                    weights_to_use[count] = weights_to_use[count] - learning_rate*w_grad[count]/self.minibatch_size
-                    
+                    weights_to_use[count] = weights_to_use[count] - \
+                        learning_rate*w_grad[count]/self.minibatch_size
+
                     biases_to_use[count] -= learning_rate * \
                         b_grad[count]
 
