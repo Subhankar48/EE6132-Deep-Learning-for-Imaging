@@ -24,7 +24,7 @@ no = ["n", "N"]
 
 
 def question_1():
-    learning_rate = 0.08
+    learning_rate = 0.03
     print("The default neural network is used here.")
     print(
         "The layer sizes are [784, 500, 250, 100, 10] with the first and last being the input and output layers respectively.")

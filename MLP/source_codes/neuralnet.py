@@ -126,10 +126,15 @@ class network(object):
         weights_to_use = weights
         biases_to_use = biases
         self.minibatch_losses = []
-        pixel_values = mean_normalize(data[0], 0, 255)
+        pixel_values = data[0]
         labels = data[1]
-        test_pixels = mean_normalize(self.test_data[0], 0, 255)
+        test_pixels = self.test_data[0]
         test_labels = self.test_data[1]
+        if (activation_fn!="sigmoid"):
+            pixel_values = mean_normalize(pixel_values, 0, 255)
+            test_pixels = mean_normalize(test_pixels, 0, 255)
+            
+            pass
 
         if (add_noisy_dataset_for_training):
             noisy_images = add_noise_to_image(
