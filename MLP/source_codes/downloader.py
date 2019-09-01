@@ -31,8 +31,8 @@ def download(folder=FOLDER_NAME, redownload=False):
     test labels. 
 
     """
-    print("Downloading the data...........")
     if not os.path.exists(os.path.join(CURRENT_DIRECTORY, folder)) or redownload:
+        print("Downloading the data...........")        
         os.mkdir(os.path.join(CURRENT_DIRECTORY, folder))
         wget.download(
             "http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz", out=folder)
