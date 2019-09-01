@@ -9,6 +9,7 @@ import image_transformations as img_trns
 import neuralnet as nn
 import regularization as re
 import downloader as dwn
+np.set_printoptions(suppress = True)
 
 
 print("This code will run through the different tasks mentioned. Please note that the code initially downloads the MNIST data in tar.gz format and uncompresses it. That process might take a few seconds. Also ensure you have the following libraries installed \nnumpy\nsklearn\nwget\npython-mnist(used for reading the downlaoded .gz file)\nos\nskimage\nrandom\nimportlib\n")
@@ -19,18 +20,42 @@ except KeyboardInterrupt:
     print("\nExiting....")
     sys.exit(0)
 
+yes = ["y", "Y"]
+no = ["n", "N"]
+
 
 def question_1():
-    baseline_model = nn.network([784, 500, 250, 100, 10])
-    baseline_model.get_data(TRAINING_DATA, TEST_DATA)
-    print(np.shape(baseline_model.training_data[0]))
-
-
+    print("The default neural network is used here.")
+    print("The layer sizes are [784, 500, 250, 100, 10] with the first and last being the input and output layers respectively.")
+    print("The activation function used is sigmoid.\n")
+    print("Initializing network...............")
+    baseline_model = nn.network([784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+    print("Initialize the weights and biases.......")
+    weights, biases = baseline_model.initialize_weights()
+    print("Training the network........")
+    baseline_model.train_network(TRAINING_DATA, weights, biases, 0.01, 15, 64, True)
+    print("Enter if you want to see other parameters like precision, recall, f1 score.")
+    print("Enter y if yes or n otherwise.")
+    choice = input()
+    if (choice in yes):
+        print("Precision -------", baseline_model._precision)
+        print("Recall----------------", baseline_model._recall)
+        print("F1 score -------------------------",
+                baseline_model._f1_score)
+    else:
+        pass
+    print("Enter if you want to see the confusion matrix.")
+    print("Enter y for yes and n for no.")
+    choice = input()
+    if (choice in yes):
+        print("Confusion Matrix")
+        print(baseline_model._confusion_mat)
 def question_2():
     pass
 
 
 def question_3():
+
     pass
 
 
@@ -41,8 +66,7 @@ def question_4():
     print("We use the self chosen neural network as a control and then use the knn and svm for comparision.")
     print("The feature vector being used is a 180 length HOG feature vector extracted using skimage.")
     print("Choose what you want to see first.")
-    print("Enter 1 for the neural networl or 2 for the classifiers.")
-
+    print("Enter 1 for the neural network or 2 for the classifiers.")
     chosen_number = int(input())
     if(chosen_number == 1):
         print(
@@ -52,11 +76,27 @@ def question_4():
         print("Load data.......")
         self_chosen_network = nn.network(
             [180, 120, 60, 25, 10], TRAINING_DATA, TEST_DATA)
-        print("Initialize the weights and gradients.........")
+        print("Initialize the weights and biases.........")
         weights, biases = self_chosen_network.initialize_weights()
         print("Training the network......")
         self_chosen_network.train_network(
             TRAINING_DATA, weights, biases, 0.01, 15, 64, True, False, False, 0, 0, False, 0, True, 'hog')
+        print("Enter if you want to see other parameters like precision, recall, f1 score.")
+        print("Enter y if yes or n otherwise.")
+        choice = input()
+        if (choice in yes):
+            print("Precision -------", self_chosen_network._precision)
+            print("Recall----------------", self_chosen_network._recall)
+            print("F1 score -------------------------",
+                  self_chosen_network._f1_score)
+        else:
+            pass
+        print("Enter if you want to see the confusion matrix.")
+        print("Enter y for yes and n for no.")
+        choice = input()
+        if (choice in yes):
+            print("Confusion Matrix")
+            print(self_chosen_network._confusion_mat)
     elif(chosen_number == 2):
         print("Choose the type of classifier.")
         print("Enter 'svm' (without the quotes) for svm classifier and 'knn' for the knn classifier.")
@@ -125,11 +165,12 @@ def main_run():
     while (True):
         try:
             print("Enter the question number you want to see.")
-            try:
-                question_number = int(input("\n"))
-            except:
-                print("Invalid input. Not an integer. Please run the code again.")
-                sys.exit(0)
+            question_number = input("\n")
+            while (not question_number.isdigit()):
+                print("Not a valid integer. Please try again.")
+                question_number = input("\n")
+            if (question_number.isdigit()):
+                question_number = int(question_number)
             if (question_number not in list_of_question_numbers):
                 print("\nExiting.....")
                 sys.exit(0)

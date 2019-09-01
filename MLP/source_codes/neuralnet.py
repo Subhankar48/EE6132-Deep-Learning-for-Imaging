@@ -14,7 +14,7 @@ import image_transformations as img
 import importlib
 importlib.reload(re)
 
-
+np.set_printoptions(suppress = True)
 class network(object):
 
     layer_sizes = []
@@ -199,6 +199,15 @@ class network(object):
 
         if (plot):
             self.plotter()
+        
+        predictions = self.predict(np.transpose(test_pixels))
+        y_vals = np.transpose(test_labels)
+        self._accuracy = ev.accuracy(predictions, y_vals)
+        self._precision = ev.precision(predictions, y_vals)
+        self._recall = ev.recall(predictions, y_vals)
+        self._f1_score = ev.f1_score(predictions, y_vals)
+        # For the other parameters
+        self._confusion_mat = ev.confusion_matrix(predictions, y_vals)[0]
 
     def predict(self, inputs):
         a_vals, z_vals, probablities = self.feed_forward(
@@ -207,19 +216,7 @@ class network(object):
 
     def plotter(self):
         plt.plot(self.minibatch_losses)
+        plt.title("Loss")
+        plt.xlabel("Minibatch number")
+        plt.ylabel("Loss")
         plt.show()
-
-    def model_performance(self):
-        predictions = self.predict(self.test_data[0])
-        y_vals = np.transpose(self.test_data[1])
-        self._accuracy = ev.accuracy(predictions, y_vals)
-        self._precision = ev.precision(predictions, y_vals)
-        self._recall = ev.recall(predictions, y_vals)
-        self._f1_score = ev.f1_score(predictions, y_vals)
-
-
-# a = network([784, 500, 250, 100, 10])
-# a.get_data()
-# a.initialize_gradients()
-# weights, biases = a.initialize_weights()
-# a.train_network(a.training_data, weights, biases)
