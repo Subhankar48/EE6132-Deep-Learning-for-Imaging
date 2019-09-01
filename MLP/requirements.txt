@@ -1,6 +1,5 @@
 numpy
 matplotlib
-scipy
 python-mnist
 wget
 sklearn
