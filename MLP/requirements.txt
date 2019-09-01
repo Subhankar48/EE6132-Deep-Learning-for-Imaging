@@ -3,3 +3,7 @@ matplotlib
 scipy
 python-mnist
 wget
+sklearn
+skimage
+sys
+importlib
