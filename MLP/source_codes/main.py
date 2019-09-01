@@ -246,7 +246,7 @@ def question_3():
         noise_std_dev = 0.1
         print("Here we see the effects of data augmentation and regularization.")
         print("We use L2 regularization and use noise addition for data augmentation.")
-        print("Select what you wan tto se first.")
+        print("Select what you want to see first.")
         print("select n for seeing the effects of adding noise and r for seeing the effects of L2 regularization.")
 
         choice_ = input("\n")
@@ -260,8 +260,67 @@ def question_3():
             print("Initialize weights and biases.......")
             weights, biases = augmented_network.initialize_weights()
             print("Training the network........")
-            pass
+            augmented_network.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, False, 0, 0, True, noise_std_dev, False, "None", (-1), False, 0)
+            print("Enter if you want to see other parameters like precision, recall, f1 score.")
+            print("Enter y if yes or n otherwise.")
+            choice = input("\n")
+            if (choice in yes):
+                print("Precision -------", augmented_network._precision)
+                print("Recall----------------", augmented_network._recall)
+                print("F1 score -------------------------",
+                    augmented_network._f1_score)
+            elif (choice in no):
+                pass
+            else:
+                print("Could not understand input.")
+            print("Enter if you want to see the confusion matrix.")
+            print("Enter y for yes and n for no.")
+            choice = input("\n")
+            if (choice in yes):
+                print("Confusion Matrix")
+                print(augmented_network._confusion_mat)
+            elif (choice in no):
+                pass
+            else:
+                print("Could not understand input.")
+        
+
         elif (choice_ in regularization_words):
+            print("We are using L2 regularization with lambda ", _lambda)
+            print("Using ReLU as actvation function.")
+            print("The learning rate used is ", learning_rate)
+            print("Initializing network.................")
+            network_with_regularization = nn.network([784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+            print("Initialize weights and biases.......")
+            weights, biases = network_with_regularization.initialize_weights()
+            print("Training the network........")
+            network_with_regularization.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, False, 0, 0, False, 0, False, "None", (-1), True, _lambda)
+            print("Enter if you want to see other parameters like precision, recall, f1 score.")
+            print("Enter y if yes or n otherwise.")
+            choice = input("\n")
+            if (choice in yes):
+                print("Precision -------", network_with_regularization._precision)
+                print("Recall----------------", network_with_regularization._recall)
+                print("F1 score -------------------------",
+                    network_with_regularization._f1_score)
+            elif (choice in no):
+                pass
+            else:
+                print("Could not understand input.")
+            print("Enter if you want to see the confusion matrix.")
+            print("Enter y for yes and n for no.")
+            choice = input("\n")
+            if (choice in yes):
+                print("Confusion Matrix")
+                print(network_with_regularization._confusion_mat)
+            elif (choice in no):
+                pass
+            else:
+                print("Could not understand input.")    
+        
+        
+        
+        
             pass
         else:
             print("Non recognized choice. Please try again.")
