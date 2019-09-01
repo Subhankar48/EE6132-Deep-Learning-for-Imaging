@@ -14,7 +14,6 @@ np.set_printoptions(suppress=True)
 
 print("This code will run through the different tasks mentioned. Please note that the code initially downloads the MNIST data in tar.gz format and uncompresses it. That process might take a few seconds. Also ensure you have the following libraries installed \nnumpy\nsklearn\nwget\npython-mnist(used for reading the downlaoded .gz file)\nos\nskimage\nrandom\nimportlib\n")
 try:
-    print("Getting the data from the compressed file.........")
     TRAINING_DATA, TEST_DATA = dwn.download()
 except KeyboardInterrupt:
     print("\nExiting....")

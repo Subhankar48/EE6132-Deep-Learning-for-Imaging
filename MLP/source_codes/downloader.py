@@ -31,7 +31,7 @@ def download(folder=FOLDER_NAME, redownload=False):
     test labels. 
 
     """
-
+    print("Downloading the data...........")
     if not os.path.exists(os.path.join(CURRENT_DIRECTORY, folder)) or redownload:
         os.mkdir(os.path.join(CURRENT_DIRECTORY, folder))
         wget.download(
@@ -43,6 +43,7 @@ def download(folder=FOLDER_NAME, redownload=False):
         wget.download(
             'http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz', out=folder)
 
+    print("\nGetting the data from the compressed file.........")
     mndata = MNIST(os.path.join(CURRENT_DIRECTORY, folder))
     mndata.gz = True
     train_images, train_labels = mndata.load_training()
