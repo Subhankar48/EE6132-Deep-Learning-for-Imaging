@@ -9,7 +9,7 @@ import image_transformations as img_trns
 import neuralnet as nn
 import regularization as re
 import downloader as dwn
-np.set_printoptions(suppress = True)
+np.set_printoptions(suppress=True)
 
 
 print("This code will run through the different tasks mentioned. Please note that the code initially downloads the MNIST data in tar.gz format and uncompresses it. That process might take a few seconds. Also ensure you have the following libraries installed \nnumpy\nsklearn\nwget\npython-mnist(used for reading the downlaoded .gz file)\nos\nskimage\nrandom\nimportlib\n")
@@ -26,14 +26,17 @@ no = ["n", "N"]
 
 def question_1():
     print("The default neural network is used here.")
-    print("The layer sizes are [784, 500, 250, 100, 10] with the first and last being the input and output layers respectively.")
+    print(
+        "The layer sizes are [784, 500, 250, 100, 10] with the first and last being the input and output layers respectively.")
     print("The activation function used is sigmoid.\n")
     print("Initializing network...............")
-    baseline_model = nn.network([784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+    baseline_model = nn.network(
+        [784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
     print("Initialize the weights and biases.......")
     weights, biases = baseline_model.initialize_weights()
     print("Training the network........")
-    baseline_model.train_network(TRAINING_DATA, weights, biases, 0.01, 15, 64, True)
+    baseline_model.train_network(
+        TRAINING_DATA, weights, biases, 0.01, 15, 64, True)
     print("Enter if you want to see other parameters like precision, recall, f1 score.")
     print("Enter y if yes or n otherwise.")
     choice = input()
@@ -41,7 +44,7 @@ def question_1():
         print("Precision -------", baseline_model._precision)
         print("Recall----------------", baseline_model._recall)
         print("F1 score -------------------------",
-                baseline_model._f1_score)
+              baseline_model._f1_score)
     else:
         pass
     print("Enter if you want to see the confusion matrix.")
@@ -50,6 +53,8 @@ def question_1():
     if (choice in yes):
         print("Confusion Matrix")
         print(baseline_model._confusion_mat)
+
+
 def question_2():
     pass
 
