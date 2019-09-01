@@ -146,6 +146,95 @@ def question_2():
 
 
 def question_3():
+    print("In this question we see the effects of different types of regularization.")
+    print("Choose what would you like to see first.")
+    print("Enter 1 for seeing the effects of adding noise to the hidden layer during training.")
+    print("Enter 2 to see the effects of adding noise to the training data and L2 regularization.")
+    learning_rate = 0.01
+    choices = ["1", "2"]
+    back_words = ["b", 'B', 'back', 'Back', 'BACK']
+    forward_words = ['f', 'F', 'Forward', 'forward', 'FORWARD'] 
+    choice = input("\n")
+    while(choice not in choices):
+        print("Invalid value encountered. Plese try again.")
+        choice = input("\n")
+    if (choice.isdigit()):
+        choice = int(choice)
+    if (choice ==1):
+        print("Here we add noise to the activation values during training.")
+        print("Enter f to see the effects of adding noise during forward prop.")
+        print("Enter b to see the effects of adding noise during backprop.")
+        _choice = input("\n")
+        if (_choice in forward_words):
+            noise_std_dev = 0.1
+            print("Adding gaussian noise with standard deviation ", noise_std_dev, " during forward prop.")
+            print("Using ReLU as actvation function.")
+            print("The learning rate used is ", learning_rate)
+            print("Initializing network.................")
+            noise_forwd_prop_model = nn.network(
+                [784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+            print("Initialize weights and biases.......")
+            weights, biases = noise_forwd_prop_model.initialize_weights()
+            print("Training the network........")
+            noise_forwd_prop_model.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, True, False, noise_std_dev, 0, False, 0, False, "None", (-1), False, 0)
+            print("Enter if you want to see other parameters like precision, recall, f1 score.")
+            print("Enter y if yes or n otherwise.")
+            choice = input("\n")
+            if (choice in yes):
+                print("Precision -------", noise_forwd_prop_model._precision)
+                print("Recall----------------", noise_forwd_prop_model._recall)
+                print("F1 score -------------------------",
+                    noise_forwd_prop_model._f1_score)
+            elif (choice in no):
+                pass
+            else:
+                print("Could not understand input.")
+            print("Enter if you want to see the confusion matrix.")
+            print("Enter y for yes and n for no.")
+            choice = input("\n")
+            if (choice in yes):
+                print("Confusion Matrix")
+                print(noise_forwd_prop_model._confusion_mat)
+            elif (choice in no):
+                pass
+            else:
+                print("Could not understand input.")
+        
+        elif (_choice in back_words):
+            noise_std_dev = 0.1
+            print("Adding gaussian noise with standard deviation ", noise_std_dev, " during back prop.")
+            print("Using ReLU as actvation function.")
+            print("The learning rate used is ", learning_rate)
+            print("Initializing network.................")
+            noise_back_prop_model = nn.network(
+                [784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+            print("Initialize weights and biases.......")
+            weights, biases = noise_back_prop_model.initialize_weights()
+            print("Training the network........")
+            noise_back_prop_model.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, True, 0, noise_std_dev, False, 0, False, "None", (-1), False, 0)
+            print("Enter if you want to see other parameters like precision, recall, f1 score.")
+            print("Enter y if yes or n otherwise.")
+            choice = input("\n")
+            if (choice in yes):
+                print("Precision -------", noise_back_prop_model._precision)
+                print("Recall----------------", noise_back_prop_model._recall)
+                print("F1 score -------------------------",
+                    noise_back_prop_model._f1_score)
+            elif (choice in no):
+                pass
+            else:
+                print("Could not understand input.")
+            print("Enter if you want to see the confusion matrix.")
+            print("Enter y for yes and n for no.")
+            choice = input("\n")
+            if (choice in yes):
+                print("Confusion Matrix")
+                print(noise_back_prop_model._confusion_mat)
+            elif (choice in no):
+                pass
+            else:
+                print("Could not understand input.")
+            pass
 
     pass
 
