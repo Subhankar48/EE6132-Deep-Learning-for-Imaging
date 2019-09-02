@@ -346,7 +346,7 @@ def question_4():
         weights, biases = self_chosen_network.initialize_weights()
         print("Training the network......")
         self_chosen_network.train_network(
-            TRAINING_DATA, weights, biases, 0.01, 15, 64, True, False, False, 0, 0, False, 0, True, 'hog')
+            TRAINING_DATA, weights, biases, 0.005, 15, 64, True, False, False, 0, 0, False, 0, True, 'hog')
         print("Enter if you want to see other parameters like precision, recall, f1 score.")
         print("Enter y if yes or n otherwise.")
         choice = input("\n")

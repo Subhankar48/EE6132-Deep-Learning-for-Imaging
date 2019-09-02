@@ -1,5 +1,4 @@
 import numpy as np
-import neuralnet as nn
 import importlib
 
 def add_noise_during_prop(x, std_dev=0.01):
