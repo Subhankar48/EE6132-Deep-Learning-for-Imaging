@@ -207,13 +207,14 @@ class network(object):
         
         predictions = self.predict(np.transpose(test_pixels))
         y_vals = np.transpose(test_labels)
-        self._accuracy = ev.accuracy(predictions, y_vals)
-        self._precision = ev.precision(predictions, y_vals)
-        self._recall = ev.recall(predictions, y_vals)
-        self._f1_score = ev.f1_score(predictions, y_vals)
         # For the other parameters
-        self._confusion_mat = ev.confusion_matrix(predictions, y_vals)[0]
-
+        self._accuracy = ev.accuracy(predictions, y_vals)
+        _results = ev.confusion_matrix(predictions, y_vals)
+        self._confusion_mat = _results[0]
+        self._precision = _results[1]
+        self._recall = _results[2]
+        self._f1_score = _results[3]
+        
     def predict(self, inputs):
         a_vals, z_vals, probablities = self.feed_forward(
             inputs, self.weights, self.biases)
