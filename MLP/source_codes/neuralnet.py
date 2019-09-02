@@ -165,7 +165,7 @@ class network(object):
             accuracy = ev.accuracy(predictions, ground_truths)
             print("Accuracy ---------------", accuracy)
 
-            for counter in range(len(input_batches)):
+            for counter in range(len(input_batches)-1):
                 _input = np.transpose(input_batches[counter])
                 one_hot_encoded_vectors = np.transpose(label_batches[counter])
                 temp_zvals, temp_avals, probablities = self.feed_forward(
