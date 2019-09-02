@@ -58,7 +58,7 @@ def tanh(x):
     return np.tanh(x)
 
 
-def softmax(x):
+def _softmax(x):
     """
     Softmax
 
@@ -85,6 +85,11 @@ def self(x):
 
     return x
 
+def softmax(x):
+    temp = np.zeros_like(x, dtype=np.float)
+    for i in range(np.shape(x)[1]):
+        temp[:,i] = _softmax(x[:,i])
+    return temp
 
 map_of_functions = {"sigmoid": sigmoid,
                     "ReLU": ReLU, "softmax": softmax, "tanh": tanh, "linear" : self}

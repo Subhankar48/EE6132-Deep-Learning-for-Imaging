@@ -104,7 +104,7 @@ class network(object):
             weight_gradients.append(np.zeros_like(weights[count]))
             bias_gradients.append(np.zeros_like(biases[count]))
 
-        delta = self.cross_entropy_derivative_with_softmax(a_vals[-1], y)
+        delta = self.cross_entropy_derivative_with_softmax(probablities, y)
         bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
         weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
         for layer_number in range(2, self.number_of_layers):
@@ -191,7 +191,7 @@ class network(object):
                         b_grad[count]
 
                 self.minibatch_losses.append(loss)
-                # print(f"Loss is ------------ = {loss}")
+                print(f"Loss is ------------ = {loss}")
 
             self.weights = weights_to_use
             self.biases = biases_to_use
