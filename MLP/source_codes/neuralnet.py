@@ -91,7 +91,7 @@ class network(object):
         for bias in self.biases:
             self.bias_gradients.append(np.zeros_like(bias))
 
-    def feed_forward(self, x, weights, biases, add_noise=False, noise_std_dev=0.01, activation = "ReLU"):
+    def feed_forward(self, x, weights, biases, activation, add_noise=False, noise_std_dev=0.01):
         self.feed_forward_activations = []
         zvals = []
         avals = []
@@ -115,7 +115,7 @@ class network(object):
     def cross_entropy_derivative_with_softmax(self, y_pred, y_true):
         return y_pred-y_true
 
-    def backprop(self, x, y, weights, biases, z_vals, a_vals, probablities, add_noise=False, noise_std_dev=0.01, activation = "ReLU"):
+    def backprop(self, x, y, weights, biases, activation, z_vals, a_vals, probablities, add_noise=False, noise_std_dev=0.01):
         weight_gradients = []
         bias_gradients = []
 
@@ -158,7 +158,7 @@ class network(object):
 
         return weight_gradients, bias_gradients
 
-    def train_network(self, data, weights, biases, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False, add_noise_in_forward_prop=False, add_noise_in_back_prop=False, noise_std_dev_feed_forward=0.01, noise_std_dev_backprop=0.01, add_noisy_dataset_for_training=False, std_dev_of_noise_to_add_for_noisy_dataset=0.01, feature_extract=False, transform="hog", shape_after_transform=(-1), regularization=False, _lambda=0, activation_fn="ReLU"):
+    def train_network(self, data, weights, biases, activation_fn, learning_rate=0.01, number_of_epochs=15, minibatch_size=64, plot=False, add_noise_in_forward_prop=False, add_noise_in_back_prop=False, noise_std_dev_feed_forward=0.01, noise_std_dev_backprop=0.01, add_noisy_dataset_for_training=False, std_dev_of_noise_to_add_for_noisy_dataset=0.01, feature_extract=False, transform="hog", shape_after_transform=(-1), regularization=False, _lambda=0):
         weights_to_use = weights
         biases_to_use = biases
         self.minibatch_losses = []
@@ -195,11 +195,11 @@ class network(object):
                              for k in range(0, len(pixel_values), minibatch_size)]
             label_batches = [labels[k:k+minibatch_size]
                              for k in range(0, len(labels), minibatch_size)]
-            predictions = self.predict(np.transpose(test_pixels))
+            predictions = self.predict(np.transpose(test_pixels), activation_fn)
             ground_truths = np.transpose(test_labels)
             accuracy = ev.accuracy(predictions, ground_truths)
             print("Accuracy ---------------", accuracy)
-            train_preds = self.predict(np.transpose(pixel_values))
+            train_preds = self.predict(np.transpose(pixel_values), activation_fn)
             train_grnd_truths = np.transpose(labels)
             train_accuracy = ev.accuracy(train_preds, train_grnd_truths)
             print("Train Accuracy ----------------", train_accuracy)
@@ -212,7 +212,7 @@ class network(object):
                 _input = np.transpose(input_batches[counter])
                 one_hot_encoded_vectors = np.transpose(label_batches[counter])
                 temp_zvals, temp_avals, probablities = self.feed_forward(
-                    _input, weights_to_use, biases_to_use, add_noise_in_forward_prop, noise_std_dev_feed_forward, activation_fn)
+                    _input, weights_to_use, biases_to_use, activation_fn, add_noise_in_forward_prop, noise_std_dev_feed_forward)
                 if (regularization):
                     loss = re.cost_with_L2_regularization(
                         probablities, one_hot_encoded_vectors, weights_to_use, _lambda, self.minibatch_size)
@@ -220,7 +220,7 @@ class network(object):
                     loss = re.cross_entropy_loss(
                         probablities, one_hot_encoded_vectors, self.minibatch_size)
                 w_grad, b_grad = self.backprop(
-                    _input, one_hot_encoded_vectors, weights_to_use, biases_to_use, temp_zvals, temp_avals, probablities, add_noise_in_back_prop, noise_std_dev_backprop, activation_fn)
+                    _input, one_hot_encoded_vectors, weights_to_use, biases_to_use, activation_fn, temp_zvals, temp_avals, probablities, add_noise_in_back_prop, noise_std_dev_backprop)
 
                 for count in range(len(weights_to_use)):
                     if (regularization):
@@ -238,7 +238,7 @@ class network(object):
 
             
                 if (to_plot%200==1):
-                    _a, _z, _probab = self.feed_forward(np.transpose(test_pixels), self.weights, self.biases)
+                    _a, _z, _probab = self.feed_forward(np.transpose(test_pixels), self.weights, self.biases, activation_fn)
                     ground_truths = np.transpose(test_labels)
                     test_loss = re.cross_entropy_loss(_probab, ground_truths, np.shape(ground_truths)[1]) 
                     self.test_losses.append(test_loss)
@@ -249,11 +249,11 @@ class network(object):
 
             
             if (epoch == number_of_epochs-1):
-                predictions = self.predict(np.transpose(test_pixels))
+                predictions = self.predict(np.transpose(test_pixels), activation_fn)
                 ground_truths = np.transpose(test_labels)
                 accuracy = ev.accuracy(predictions, ground_truths)
                 print("Accuracy ---------------", accuracy)
-                train_preds = self.predict(np.transpose(pixel_values))
+                train_preds = self.predict(np.transpose(pixel_values), activation_fn)
                 train_grnd_truths = np.transpose(labels)
                 train_accuracy = ev.accuracy(train_preds, train_grnd_truths)
                 print("Train Accuracy ----------------", train_accuracy)
@@ -265,7 +265,7 @@ class network(object):
         if (plot):
             self.plotter(learning_rate)
         
-        predictions = self.predict(np.transpose(test_pixels))
+        predictions = self.predict(np.transpose(test_pixels), activation_fn)
         y_vals = np.transpose(test_labels)
         # For the other parameters
         self._accuracy = ev.accuracy(predictions, y_vals)
@@ -275,9 +275,9 @@ class network(object):
         self._recall = _results[2]
         self._f1_score = _results[3]
         
-    def predict(self, inputs):
+    def predict(self, inputs, _activation_fn):
         a_vals, z_vals, probablities = self.feed_forward(
-            inputs, self.weights, self.biases)
+            inputs, self.weights, self.biases, _activation_fn)
         return (probablities == np.max(probablities, axis=0))*np.ones_like(probablities)
 
     def plotter(self, learning_rate):
