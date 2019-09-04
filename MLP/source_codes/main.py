@@ -80,7 +80,7 @@ def question_2():
         weights, biases = relu_model.initialize_weights()
         print("Training the network........")
         relu_model.train_network(TRAINING_DATA, weights, biases, 0.01, 15, 64, True,
-                                 False, False, 0, 0, False, 0, False, "None", (-1), False, 0, 'ReLU')
+                                 False, False, 0, 0, False, 0, False, "None", (-1), False, 0)
         print("Enter if you want to see other parameters like precision, recall, f1 score.")
         print("Enter y if yes or n otherwise.")
         choice = input("\n")
@@ -105,7 +105,7 @@ def question_2():
             print("Could not understand input.")
 
     elif (choice in tanh_names):
-        learning_rate = 0.01
+        learning_rate = 0.005
         print("Using tanh as actvation function.")
         print("The learning rate used is ", learning_rate)
         print("Initializing network.................")
@@ -114,8 +114,8 @@ def question_2():
         print("Initialize weights and biases.......")
         weights, biases = tanh_model.initialize_weights()
         print("Training the network........")
-        tanh_model.train_network(TRAINING_DATA, weights, biases, 0.01, 15, 64, True,
-                                 False, False, 0, 0, False, 0, False, "None", (-1), False, 0, 'ReLU')
+        tanh_model.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True,
+                                 False, False, 0, 0, False, 0, False, "None", (-1), False, 0)
         print("Enter if you want to see other parameters like precision, recall, f1 score.")
         print("Enter y if yes or n otherwise.")
         choice = input("\n")
@@ -169,7 +169,7 @@ def question_3():
         if (_choice in forward_words):
             noise_std_dev = 0.1
             print("Adding gaussian noise with standard deviation ", noise_std_dev, " during forward prop.")
-            print("Using ReLU as actvation function.")
+            print("Using sigmoid as actvation function.")
             print("The learning rate used is ", learning_rate)
             print("Initializing network.................")
             noise_forwd_prop_model = nn.network(
@@ -177,7 +177,7 @@ def question_3():
             print("Initialize weights and biases.......")
             weights, biases = noise_forwd_prop_model.initialize_weights()
             print("Training the network........")
-            noise_forwd_prop_model.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, True, False, noise_std_dev, 0, False, 0, False, "None", (-1), False, 0)
+            noise_forwd_prop_model.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, True, False, noise_std_dev, 0, False, 0, False, "None", (-1), False, 0, 'sigmoid')
             print("Enter if you want to see other parameters like precision, recall, f1 score.")
             print("Enter y if yes or n otherwise.")
             choice = input("\n")
@@ -204,7 +204,7 @@ def question_3():
         elif (_choice in back_words):
             noise_std_dev = 0.1
             print("Adding gaussian noise with standard deviation ", noise_std_dev, " during back prop.")
-            print("Using ReLU as actvation function.")
+            print("Using sigmoid as actvation function.")
             print("The learning rate used is ", learning_rate)
             print("Initializing network.................")
             noise_back_prop_model = nn.network(
@@ -212,7 +212,7 @@ def question_3():
             print("Initialize weights and biases.......")
             weights, biases = noise_back_prop_model.initialize_weights()
             print("Training the network........")
-            noise_back_prop_model.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, True, 0, noise_std_dev, False, 0, False, "None", (-1), False, 0)
+            noise_back_prop_model.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, True, 0, noise_std_dev, False, 0, False, "None", (-1), False, 0, 'sigmoid')
             print("Enter if you want to see other parameters like precision, recall, f1 score.")
             print("Enter y if yes or n otherwise.")
             choice = input("\n")
@@ -241,8 +241,8 @@ def question_3():
             print("Non recognized choice. Please try again.")
 
     elif (choice ==2):
-        _lambda= 0.1
-        noise_std_dev = 0.1
+        _lambda= 0.05
+        noise_std_dev = 1
         print("Here we see the effects of data augmentation and regularization.")
         print("We use L2 regularization and use noise addition for data augmentation.")
         print("Select what you want to see first.")
@@ -259,7 +259,7 @@ def question_3():
             print("Initialize weights and biases.......")
             weights, biases = augmented_network.initialize_weights()
             print("Training the network........")
-            augmented_network.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, False, 0, 0, True, noise_std_dev, False, "None", (-1), False, 0)
+            augmented_network.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, False, 0, 0, True, noise_std_dev, False, "None", (-1), False, 0, 'sigmoid')
             print("Enter if you want to see other parameters like precision, recall, f1 score.")
             print("Enter y if yes or n otherwise.")
             choice = input("\n")
@@ -286,14 +286,14 @@ def question_3():
 
         elif (choice_ in regularization_words):
             print("We are using L2 regularization with lambda ", _lambda)
-            print("Using ReLU as actvation function.")
+            print("Using sigmoid as actvation function.")
             print("The learning rate used is ", learning_rate)
             print("Initializing network.................")
             network_with_regularization = nn.network([784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
             print("Initialize weights and biases.......")
             weights, biases = network_with_regularization.initialize_weights()
             print("Training the network........")
-            network_with_regularization.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, False, 0, 0, False, 0, False, "None", (-1), True, _lambda)
+            network_with_regularization.train_network(TRAINING_DATA, weights, biases, learning_rate, 15, 64, True, False, False, 0, 0, False, 0, False, "None", (-1), True, _lambda, 'sigmoid')
             print("Enter if you want to see other parameters like precision, recall, f1 score.")
             print("Enter y if yes or n otherwise.")
             choice = input("\n")
@@ -346,7 +346,7 @@ def question_4():
         weights, biases = self_chosen_network.initialize_weights()
         print("Training the network......")
         self_chosen_network.train_network(
-            TRAINING_DATA, weights, biases, 0.005, 15, 64, True, False, False, 0, 0, False, 0, True, 'hog')
+            TRAINING_DATA, weights, biases, 0.01, 15, 64, True, False, False, 0, 0, False, 0, True, 'hog')
         print("Enter if you want to see other parameters like precision, recall, f1 score.")
         print("Enter y if yes or n otherwise.")
         choice = input("\n")
@@ -425,7 +425,7 @@ def main_run():
     print("Enter 3 for seeing the effects of various regularization algorithms.")
     print("Note that we are using L2 regularization and using noise addition for data augmentation.")
     print("Enter 4 for parts related to hog features, self designed network and SVM and KNN classifiers.")
-    print("Enter anything else or 'CTRL+C' to exit.")
+    print("Enter anything else to exit.")
     print("NOTE : The code will keep prompting till you exit.\n")
     list_of_question_numbers = [1, 2, 3, 4]
     while (True):

@@ -17,8 +17,6 @@ importlib.reload(re)
 np.set_printoptions(suppress = True)
 class network(object):
 
-    layer_sizes = []
-    weights = []
     biases = []
     training_data = []
     test_data = []
@@ -28,6 +26,10 @@ class network(object):
     bias_gradients = []
     number_of_layers = 0
     minibatch_losses = []
+    train_accuracy = []
+    test_accuracy = []
+    test_losses = []
+    percentage_of_inactive_neurons = [[],[],[]]
     _accuracy = 0
     _precision = 0
     _recall = 0
@@ -39,6 +41,23 @@ class network(object):
             self.layer_sizes = sizes
             self.training_data = train_data
             self.test_data = _test_data
+            self.weights = []
+            self.biases = []
+            self.feed_forward_activations = []
+            self.z_values = []
+            self.weight_gradients = []
+            self.bias_gradients = []
+            self.minibatch_losses = []
+            self.train_accuracy = []
+            self.test_accuracy = []
+            self.test_losses = []
+            self.percentage_of_inactive_neurons = [[],[],[]]
+            self._accuracy = 0
+            self._precision = 0
+            self._recall = 0
+            self._f1_score = 0
+            self.minibatch_size = 64
+
         else:
             print("There is no hidden layer. Not a valid neural network.")
             sys.exit(0)
@@ -100,12 +119,24 @@ class network(object):
         weight_gradients = []
         bias_gradients = []
 
+        total_neurons = 0
+        inactive_neurons = 0
+
+
+
         for count in range(len(weights)):
             weight_gradients.append(np.zeros_like(weights[count]))
             bias_gradients.append(np.zeros_like(biases[count]))
 
         delta = self.cross_entropy_derivative_with_softmax(probablities, y)
         bias_gradients[-1] = np.mean(delta, axis=1, keepdims=True)
+        threshold = 1e-5
+
+        total_neurons=np.size(delta)
+        inactive_neurons=np.sum((np.abs(delta)<threshold)*np.ones_like(delta))
+
+        self.percentage_of_inactive_neurons[-1].append((inactive_neurons/total_neurons)*100)
+
         weight_gradients[-1] = np.dot(delta, np.transpose(a_vals[-2]))
         for layer_number in range(2, self.number_of_layers):
             delta = np.dot(np.transpose(weights[-layer_number+1]), delta) * \
@@ -119,6 +150,11 @@ class network(object):
                        1] = re.add_noise_during_prop(a_vals[-layer_number-1], noise_std_dev)
             weight_gradients[-layer_number] = np.dot(
                 delta, np.transpose(a_vals[-layer_number-1]))
+            
+            if (layer_number<4):
+                total_neurons=np.size(delta)
+                inactive_neurons=np.sum((np.abs(delta)<threshold)*np.ones_like(delta))
+                self.percentage_of_inactive_neurons[-layer_number].append((inactive_neurons/total_neurons)*100)
 
         return weight_gradients, bias_gradients
 
@@ -130,11 +166,10 @@ class network(object):
         labels = data[1]
         test_pixels = self.test_data[0]
         test_labels = self.test_data[1]
-        if (activation_fn!="sigmoid"):
+        to_plot = 0
+        if(activation_fn!="sigmoid"):
             pixel_values = mean_normalize(pixel_values, 0, 255)
             test_pixels = mean_normalize(test_pixels, 0, 255)
-            
-            pass
 
         if (add_noisy_dataset_for_training):
             noisy_images = add_noise_to_image(
@@ -164,8 +199,16 @@ class network(object):
             ground_truths = np.transpose(test_labels)
             accuracy = ev.accuracy(predictions, ground_truths)
             print("Accuracy ---------------", accuracy)
+            train_preds = self.predict(np.transpose(pixel_values))
+            train_grnd_truths = np.transpose(labels)
+            train_accuracy = ev.accuracy(train_preds, train_grnd_truths)
+            print("Train Accuracy ----------------", train_accuracy)
+
+            self.test_accuracy.append(accuracy)
+            self.train_accuracy.append(train_accuracy)
 
             for counter in range(len(input_batches)-1):
+                to_plot+=1
                 _input = np.transpose(input_batches[counter])
                 one_hot_encoded_vectors = np.transpose(label_batches[counter])
                 temp_zvals, temp_avals, probablities = self.feed_forward(
@@ -190,20 +233,37 @@ class network(object):
                     biases_to_use[count] -= learning_rate * \
                         b_grad[count]
 
+                self.weights = weights_to_use
+                self.biases = biases_to_use
+
+            
+                if (to_plot%200==1):
+                    _a, _z, _probab = self.feed_forward(np.transpose(test_pixels), self.weights, self.biases)
+                    ground_truths = np.transpose(test_labels)
+                    test_loss = re.cross_entropy_loss(_probab, ground_truths, np.shape(ground_truths)[1]) 
+                    self.test_losses.append(test_loss)
+
+
                 self.minibatch_losses.append(loss)
-                print(f"Loss is ------------ = {loss}")
+                # print(f"Loss is ------------ = {loss}")
 
-            self.weights = weights_to_use
-            self.biases = biases_to_use
-
+            
             if (epoch == number_of_epochs-1):
                 predictions = self.predict(np.transpose(test_pixels))
                 ground_truths = np.transpose(test_labels)
                 accuracy = ev.accuracy(predictions, ground_truths)
                 print("Accuracy ---------------", accuracy)
+                train_preds = self.predict(np.transpose(pixel_values))
+                train_grnd_truths = np.transpose(labels)
+                train_accuracy = ev.accuracy(train_preds, train_grnd_truths)
+                print("Train Accuracy ----------------", train_accuracy)
+
+                self.test_accuracy.append(accuracy)
+                self.train_accuracy.append(train_accuracy)
+
 
         if (plot):
-            self.plotter()
+            self.plotter(learning_rate)
         
         predictions = self.predict(np.transpose(test_pixels))
         y_vals = np.transpose(test_labels)
@@ -220,9 +280,30 @@ class network(object):
             inputs, self.weights, self.biases)
         return (probablities == np.max(probablities, axis=0))*np.ones_like(probablities)
 
-    def plotter(self):
-        plt.plot(self.minibatch_losses)
-        plt.title("Loss")
+    def plotter(self, learning_rate):
+        n = np.arange(len(self.minibatch_losses))
+        plt.plot(n[::200], self.minibatch_losses[::200])
+        plt.plot(n[::200], self.test_losses)
+        plt.title(f"Training and test losses.")
         plt.xlabel("Minibatch number")
         plt.ylabel("Loss")
+        plt.legend(["Training", "Test"])
+        plt.show()
+
+        plt.plot(self.test_accuracy)
+        plt.plot(self.train_accuracy)
+        plt.title(f"Accuracy progresion per epoch for learning rate {learning_rate}")
+        plt.xlabel("Epoch")
+        plt.ylabel("Accuracy")
+        plt.legend(["Training", "Test"])
+        plt.show()
+
+        for k in range(len(self.percentage_of_inactive_neurons)):
+            plt.plot(self.percentage_of_inactive_neurons[k][::200])
+            
+
+        plt.title(f"Percentage of inactive neurons.")        
+        plt.xlabel("Minibatch number")
+        plt.ylabel("Percentage of inactive neurons")  
+        plt.legend(["layer 1", "layer 2", "layer 3"])
         plt.show()
