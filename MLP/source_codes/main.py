@@ -24,7 +24,7 @@ no = ["n", "N"]
 
 
 def question_1():
-    learning_rate = 0.01
+    learning_rate = 0.05
     print("The default neural network is used here.")
     print(
         "The layer sizes are [784, 500, 250, 100, 10] with the first and last being the input and output layers respectively.")
@@ -37,7 +37,7 @@ def question_1():
     weights, biases = baseline_model.initialize_weights()
     print("Training the network........")
     baseline_model.train_network(
-        TRAINING_DATA, weights, biases,"sigmoid",  learning_rate, 15, 64, True, False, False, 0, 0, False, 0, False, "None", (-1), False, 0)
+        TRAINING_DATA, weights, biases, "sigmoid",  learning_rate, 15, 64, True, False, False, 0, 0, False, 0, False, "None", (-1), False, 0)
     print("Enter if you want to see other parameters like precision, recall, f1 score.")
     print("Enter y if yes or n otherwise.")
     choice = input("\n")
@@ -139,7 +139,7 @@ def question_2():
         else:
             print("Could not understand input.")
         pass
-    
+
     else:
         print("Could not understand the choice.")
 
@@ -149,26 +149,28 @@ def question_3():
     print("Choose what would you like to see first.")
     print("Enter 1 for seeing the effects of adding noise to the hidden layer during training.")
     print("Enter 2 to see the effects of adding noise to the training data and L2 regularization.")
-    learning_rate = 0.01
+    learning_rate = 0.05
     choices = ["1", "2"]
     back_words = ["b", 'B', 'back', 'Back', 'BACK']
     forward_words = ['f', 'F', 'Forward', 'forward', 'FORWARD']
     noise_words = ['n', 'N', 'Noise', 'noise']
-    regularization_words = ['r', 'R', 'Regularization', 'l2', 'L2', 'regularization' ] 
+    regularization_words = [
+        'r', 'R', 'Regularization', 'l2', 'L2', 'regularization']
     choice = input("\n")
     while(choice not in choices):
         print("Invalid value encountered. Plese try again.")
         choice = input("\n")
     if (choice.isdigit()):
         choice = int(choice)
-    if (choice ==1):
+    if (choice == 1):
         print("Here we add noise to the activation values during training.")
         print("Enter f to see the effects of adding noise during forward prop.")
         print("Enter b to see the effects of adding noise during backprop.")
         _choice = input("\n")
         if (_choice in forward_words):
-            noise_std_dev = 0.1
-            print("Adding gaussian noise with standard deviation ", noise_std_dev, " during forward prop.")
+            noise_std_dev = 0.01
+            print("Adding gaussian noise with standard deviation ",
+                  noise_std_dev, " during forward prop.")
             print("Using sigmoid as actvation function.")
             print("The learning rate used is ", learning_rate)
             print("Initializing network.................")
@@ -177,15 +179,17 @@ def question_3():
             print("Initialize weights and biases.......")
             weights, biases = noise_forwd_prop_model.initialize_weights()
             print("Training the network........")
-            noise_forwd_prop_model.train_network(TRAINING_DATA, weights, biases, learning_rate, "sigmoid", 15, 64, True, True, False, noise_std_dev, 0, False, 0, False, "None", (-1), False, 0)
-            print("Enter if you want to see other parameters like precision, recall, f1 score.")
+            noise_forwd_prop_model.train_network(TRAINING_DATA, weights, biases, "sigmoid", learning_rate,
+                                                 15, 64, True, True, False, noise_std_dev, 0, False, 0, False, "None", (-1), False, 0)
+            print(
+                "Enter if you want to see other parameters like precision, recall, f1 score.")
             print("Enter y if yes or n otherwise.")
             choice = input("\n")
             if (choice in yes):
                 print("Precision -------", noise_forwd_prop_model._precision)
                 print("Recall----------------", noise_forwd_prop_model._recall)
                 print("F1 score -------------------------",
-                    noise_forwd_prop_model._f1_score)
+                      noise_forwd_prop_model._f1_score)
             elif (choice in no):
                 pass
             else:
@@ -200,10 +204,11 @@ def question_3():
                 pass
             else:
                 print("Could not understand input.")
-        
+
         elif (_choice in back_words):
-            noise_std_dev = 0.1
-            print("Adding gaussian noise with standard deviation ", noise_std_dev, " during back prop.")
+            noise_std_dev = 0.01
+            print("Adding gaussian noise with standard deviation ",
+                  noise_std_dev, " during back prop.")
             print("Using sigmoid as actvation function.")
             print("The learning rate used is ", learning_rate)
             print("Initializing network.................")
@@ -212,15 +217,17 @@ def question_3():
             print("Initialize weights and biases.......")
             weights, biases = noise_back_prop_model.initialize_weights()
             print("Training the network........")
-            noise_back_prop_model.train_network(TRAINING_DATA, weights, biases, "sigmoid", learning_rate, 15, 64, True, False, True, 0, noise_std_dev, False, 0, False, "None", (-1), False, 0)
-            print("Enter if you want to see other parameters like precision, recall, f1 score.")
+            noise_back_prop_model.train_network(TRAINING_DATA, weights, biases, "sigmoid", learning_rate,
+                                                15, 64, True, False, True, 0, noise_std_dev, False, 0, False, "None", (-1), False, 0)
+            print(
+                "Enter if you want to see other parameters like precision, recall, f1 score.")
             print("Enter y if yes or n otherwise.")
             choice = input("\n")
             if (choice in yes):
                 print("Precision -------", noise_back_prop_model._precision)
                 print("Recall----------------", noise_back_prop_model._recall)
                 print("F1 score -------------------------",
-                    noise_back_prop_model._f1_score)
+                      noise_back_prop_model._f1_score)
             elif (choice in no):
                 pass
             else:
@@ -240,8 +247,8 @@ def question_3():
         else:
             print("Non recognized choice. Please try again.")
 
-    elif (choice ==2):
-        _lambda= 0.05
+    elif (choice == 2):
+        _lambda = 0.05
         noise_std_dev = 1
         print("Here we see the effects of data augmentation and regularization.")
         print("We use L2 regularization and use noise addition for data augmentation.")
@@ -251,23 +258,27 @@ def question_3():
         choice_ = input("\n")
         if (choice_ in noise_words):
             print("We are using gaussian noise with standard deviation ", noise_std_dev)
-            print("Note that the training process will be slightly slower as the data samples have doubled.")
+            print(
+                "Note that the training process will be slightly slower as the data samples have doubled.")
             print("Using ReLU as actvation function.")
             print("The learning rate used is ", learning_rate)
             print("Initializing network.................")
-            augmented_network = nn.network([784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+            augmented_network = nn.network(
+                [784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
             print("Initialize weights and biases.......")
             weights, biases = augmented_network.initialize_weights()
             print("Training the network........")
-            augmented_network.train_network(TRAINING_DATA, weights, biases, 'sigmoid', learning_rate, 15, 64, True, False, False, 0, 0, True, noise_std_dev, False, "None", (-1), False, 0)
-            print("Enter if you want to see other parameters like precision, recall, f1 score.")
+            augmented_network.train_network(TRAINING_DATA, weights, biases, 'sigmoid', learning_rate,
+                                            15, 64, True, False, False, 0, 0, True, noise_std_dev, False, "None", (-1), False, 0)
+            print(
+                "Enter if you want to see other parameters like precision, recall, f1 score.")
             print("Enter y if yes or n otherwise.")
             choice = input("\n")
             if (choice in yes):
                 print("Precision -------", augmented_network._precision)
                 print("Recall----------------", augmented_network._recall)
                 print("F1 score -------------------------",
-                    augmented_network._f1_score)
+                      augmented_network._f1_score)
             elif (choice in no):
                 pass
             else:
@@ -282,26 +293,29 @@ def question_3():
                 pass
             else:
                 print("Could not understand input.")
-        
 
         elif (choice_ in regularization_words):
             print("We are using L2 regularization with lambda ", _lambda)
             print("Using sigmoid as actvation function.")
             print("The learning rate used is ", learning_rate)
             print("Initializing network.................")
-            network_with_regularization = nn.network([784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
+            network_with_regularization = nn.network(
+                [784, 500, 250, 100, 10], TRAINING_DATA, TEST_DATA)
             print("Initialize weights and biases.......")
             weights, biases = network_with_regularization.initialize_weights()
             print("Training the network........")
-            network_with_regularization.train_network(TRAINING_DATA, weights, biases, 'sigmoid', learning_rate, 15, 64, True, False, False, 0, 0, False, 0, False, "None", (-1), True, _lambda)
-            print("Enter if you want to see other parameters like precision, recall, f1 score.")
+            network_with_regularization.train_network(
+                TRAINING_DATA, weights, biases, 'sigmoid', learning_rate, 15, 64, True, False, False, 0, 0, False, 0, False, "None", (-1), True, _lambda)
+            print(
+                "Enter if you want to see other parameters like precision, recall, f1 score.")
             print("Enter y if yes or n otherwise.")
             choice = input("\n")
             if (choice in yes):
                 print("Precision -------", network_with_regularization._precision)
-                print("Recall----------------", network_with_regularization._recall)
+                print("Recall----------------",
+                      network_with_regularization._recall)
                 print("F1 score -------------------------",
-                    network_with_regularization._f1_score)
+                      network_with_regularization._f1_score)
             elif (choice in no):
                 pass
             else:
@@ -315,11 +329,8 @@ def question_3():
             elif (choice in no):
                 pass
             else:
-                print("Could not understand input.")    
-        
-        
-        
-        
+                print("Could not understand input.")
+
             pass
         else:
             print("Non recognized choice. Please try again.")

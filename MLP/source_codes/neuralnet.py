@@ -17,25 +17,6 @@ importlib.reload(re)
 np.set_printoptions(suppress = True)
 class network(object):
 
-    biases = []
-    training_data = []
-    test_data = []
-    feed_forward_activations = []
-    z_values = []
-    weight_gradients = []
-    bias_gradients = []
-    number_of_layers = 0
-    minibatch_losses = []
-    train_accuracy = []
-    test_accuracy = []
-    test_losses = []
-    percentage_of_inactive_neurons = [[],[],[]]
-    _accuracy = 0
-    _precision = 0
-    _recall = 0
-    _f1_score = 0
-    minibatch_size = 64
-
     def __init__(self, sizes, train_data, _test_data):
         if (len(sizes) > 0):
             self.layer_sizes = sizes
@@ -307,3 +288,4 @@ class network(object):
         plt.ylabel("Percentage of inactive neurons")  
         plt.legend(["layer 1", "layer 2", "layer 3"])
         plt.show()
+
