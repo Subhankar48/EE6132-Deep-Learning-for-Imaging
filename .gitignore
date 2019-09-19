@@ -37,3 +37,13 @@ MLP/latex_files.zip
 MLP/report.pdf
 CNN/.vscode/settings.json
 CNN/source_codes/.vscode/settings.json
+CNN/source_codes/mnist/MNIST/processed/test.pt
+CNN/source_codes/mnist/MNIST/raw/train-labels-idx1-ubyte.gz
+CNN/source_codes/mnist/MNIST/raw/train-labels-idx1-ubyte
+CNN/source_codes/mnist/MNIST/raw/train-images-idx3-ubyte.gz
+CNN/source_codes/mnist/MNIST/raw/train-images-idx3-ubyte
+CNN/source_codes/mnist/MNIST/raw/t10k-labels-idx1-ubyte
+CNN/source_codes/mnist/MNIST/raw/t10k-labels-idx1-ubyte.gz
+CNN/source_codes/mnist/MNIST/raw/t10k-images-idx3-ubyte.gz
+CNN/source_codes/mnist/MNIST/raw/t10k-images-idx3-ubyte
+CNN/source_codes/mnist/MNIST/processed/training.pt
