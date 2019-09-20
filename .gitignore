@@ -48,3 +48,4 @@ CNN/source_codes/mnist/MNIST/raw/t10k-images-idx3-ubyte.gz
 CNN/source_codes/mnist/MNIST/raw/t10k-images-idx3-ubyte
 CNN/source_codes/mnist/MNIST/processed/training.pt
 CNN/source_codes/__pycache__/main.cpython-36.pyc
+CNN/source_codes/model/CNN.ckpt

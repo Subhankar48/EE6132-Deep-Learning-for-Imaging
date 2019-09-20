@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader, Dataset, TensorDataset
 # Configurations
 CURRENT_DIRECTORY = os.getcwd()
 FOLDER_NAME = 'mnist'
+MODEL_FOLDER = 'model'
 to_download = False
 _batch_size = 128
 _shuffle = True
@@ -19,12 +20,17 @@ VALIDATION_SIZE = 10000
 use_cuda = torch.cuda.is_available()
 computation_device = torch.device("cuda" if use_cuda else "cpu")
 learning_rate = 0.08
-number_of_epochs = 5
+number_of_epochs = 8
+save_model = False
+
 # Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
     os.mkdir(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME))
     to_download = True
-
+if (save_model):
+    if not os.path.exists(os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)):
+        os.mkdir(os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER))
+    PATH_TO_STORE_MODEL = os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)+'/'
 # CNN Definition
 
 
@@ -99,6 +105,8 @@ def main():
         train(network, computation_device, train_loader, optimizer, epoch)
         test(network, computation_device, test_loader)
 
+    if (save_model):
+        torch.save(network.state_dict(), PATH_TO_STORE_MODEL+'CNN.ckpt')
 
 if __name__ == '__main__':
     main()
