@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import os
 import matplotlib.pyplot as plt
 import torch
@@ -7,7 +8,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Dataset, TensorDataset
-
+from torchvision.utils import make_grid
 
 # Configurations
 CURRENT_DIRECTORY = os.getcwd()
@@ -20,8 +21,9 @@ VALIDATION_SIZE = 10000
 use_cuda = torch.cuda.is_available()
 computation_device = torch.device("cuda" if use_cuda else "cpu")
 learning_rate = 0.08
-number_of_epochs = 8
+number_of_epochs = 1
 save_model = False
+plot = False
 
 # Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
@@ -45,7 +47,7 @@ class CNN(nn.Module):
         self.layer4 = nn.Linear(500, 10)
 
     def forward(self, x):
-        out = self.layer1(x)
+        out = self.layer1(x.float())
         out = self.layer2(out)
         out = out.reshape(out.size(0), -1)
         out = self.layer3(out)
@@ -91,22 +93,62 @@ def test(network, computation_device, test_loader):
 
 
 def main():
-    _transform = transforms.Compose(
-        [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
-    train_loader = DataLoader(datasets.MNIST(FOLDER_NAME, train=True, download=to_download,
-                                             transform=_transform), batch_size=_batch_size, shuffle=_shuffle)
-    test_loader = DataLoader(
-        datasets.MNIST(FOLDER_NAME, train=False, transform=_transform),
-        batch_size=_batch_size, shuffle=_shuffle)
+    try:
+        _transform = transforms.Compose(
+            [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
+        train_loader = DataLoader(datasets.MNIST(FOLDER_NAME, train=True, download=to_download,
+                                                 transform=_transform), batch_size=_batch_size, shuffle=_shuffle)
+        test_loader = DataLoader(
+            datasets.MNIST(FOLDER_NAME, train=False, transform=_transform),
+            batch_size=_batch_size, shuffle=_shuffle)
+        network = CNN().to(computation_device)
+        optimizer = optim.SGD(network.parameters(), lr=learning_rate)
+       
+        for epoch in range(1, number_of_epochs+1):
+            train(network, computation_device, train_loader, optimizer, epoch)
+            test(network, computation_device, test_loader)
 
-    network = CNN().to(computation_device)
-    optimizer = optim.SGD(network.parameters(), lr=learning_rate)
-    for epoch in range(1, number_of_epochs+1):
-        train(network, computation_device, train_loader, optimizer, epoch)
-        test(network, computation_device, test_loader)
+        if (save_model):
+            torch.save(network.state_dict(), PATH_TO_STORE_MODEL+'CNN.ckpt')
 
-    if (save_model):
-        torch.save(network.state_dict(), PATH_TO_STORE_MODEL+'CNN.ckpt')
+        if (plot):
+            # Plotting the kernels
+            kernel1 = network.layer1[0].weight.detach().clone()
+            if (computation_device == torch.device("cuda")):
+                kernel1 = kernel1.cpu()
+            kernel1 = kernel1 - kernel1.min()
+            kernel1 = kernel1/kernel1.max()
+            img1 = make_grid(kernel1)
+            plt.imshow(img1.permute(1, 2, 0))
+            plt.title("First conv layer filters")
+            plt.show()
+
+            kernel2 = network.layer2[0].weight.detach().clone()
+            if (computation_device == torch.device("cuda")):
+                kernel2 = kernel2.cpu()
+            kernel2 = kernel2 - kernel2.min()
+            kernel2 = kernel2/kernel2.max()
+            for filter_number in range(0, 32):
+                temp_kernel = kernel2[filter_number,
+                                      :, :, :].reshape(32, 1, 3, 3)
+                img = make_grid(temp_kernel)
+                plt.imshow(img.permute(1, 2, 0))
+                to_show = int(filter_number)+1
+                plt.title(f"Second conv layer layers for {to_show} filter.")
+                plt.show()
+
+        a = test_loader.dataset.data[0,:,:].clone().float()
+        a[7:21,7:21] = 0
+        plt.imshow(a)
+        plt.show()
+        with torch.no_grad():
+            print(torch.exp(network(a.reshape(1,1,28,28).cuda())))
+
+
+    except KeyboardInterrupt:
+        print("\nExiting............")
+        sys.exit(0)
+
 
 if __name__ == '__main__':
     main()
