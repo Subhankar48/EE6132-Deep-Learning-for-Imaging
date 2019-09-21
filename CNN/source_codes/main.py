@@ -23,7 +23,7 @@ computation_device = torch.device("cuda" if use_cuda else "cpu")
 learning_rate = 0.08
 number_of_epochs = 8
 save_model = True
-plot = False
+plot_kernels = False
 visualize = True
 
 # Download
@@ -102,17 +102,21 @@ def main():
         test_loader = DataLoader(
             datasets.MNIST(FOLDER_NAME, train=False, transform=_transform),
             batch_size=_batch_size)
+
+        # Declare the network and optimizer
         network = CNN().to(computation_device)
         optimizer = optim.SGD(network.parameters(), lr=learning_rate)
 
+        # Train and test the network
         for epoch in range(1, number_of_epochs+1):
             train(network, computation_device, train_loader, optimizer, epoch)
             test(network, computation_device, test_loader)
 
+        # Save the model 
         if (save_model):
             torch.save(network.state_dict(), PATH_TO_STORE_MODEL+'CNN.ckpt')
 
-        if (plot):
+        if (plot_kernels):
             # Plotting the kernels
             kernel1 = network.layer1[0].weight.detach().clone()
             if (computation_device == torch.device("cuda")):
@@ -150,7 +154,10 @@ def main():
                         temp_image_to_be_covered = test_image.clone()
                         temp_image_to_be_covered[14*y_axis:14*y_axis+14, 14*x_axis:14*x_axis+14] = 0
                         with torch.no_grad():
-                            output = torch.exp(network(temp_image_to_be_covered.reshape(1,1,28,28).cuda()))
+                            if (computation_device == torch.device("cuda")):
+                                output = torch.exp(network(temp_image_to_be_covered.reshape(1,1,28,28).cuda()))
+                            else:
+                                output = torch.exp(network(temp_image_to_be_covered.reshape(1,1,28,28)))
                             prediction = torch.argmax(output).cpu().squeeze().item()
                             probability = torch.max(output).cpu().squeeze().item()
                         plt.imshow(temp_image_to_be_covered)
