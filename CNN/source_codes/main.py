@@ -10,7 +10,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torchvision.utils import make_grid
 
-### Configurations
+# Configurations
 CURRENT_DIRECTORY = os.getcwd()
 FOLDER_NAME = 'mnist'
 MODEL_FOLDER = 'model'
@@ -26,7 +26,7 @@ save_model = False
 plot_kernels = False
 visualize_occlusion_effects = False
 visualize_features = False
-### Download
+# Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
     os.mkdir(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME))
     to_download = True
@@ -34,7 +34,7 @@ if (save_model):
     if not os.path.exists(os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)):
         os.mkdir(os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER))
     PATH_TO_STORE_MODEL = os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)+'/'
-### CNN Definition
+# CNN Definition
 
 
 class CNN(nn.Module):
@@ -55,9 +55,9 @@ class CNN(nn.Module):
         out = self.layer4(out)
         return F.log_softmax(out, dim=1)
 
-### Main
+# Main
 
-### Define Training
+# Define Training
 
 
 def train(network, computation_device, train_loader, optimizer, epoch):
@@ -74,7 +74,7 @@ def train(network, computation_device, train_loader, optimizer, epoch):
             data), len(train_loader.dataset), 100.0*batch_idx/len(train_loader), loss.item()))
 
 
-### Testing Definition
+# Testing Definition
 def test(network, computation_device, test_loader):
     network.eval()
     test_loss = 0
@@ -103,21 +103,21 @@ def main():
             datasets.MNIST(FOLDER_NAME, train=False, transform=_transform),
             batch_size=_batch_size)
 
-        ### Declare the network and optimizer
+        # Declare the network and optimizer
         network = CNN().to(computation_device)
         optimizer = optim.SGD(network.parameters(), lr=learning_rate)
 
-        ### Train and test the network
+        # Train and test the network
         for epoch in range(1, number_of_epochs+1):
             train(network, computation_device, train_loader, optimizer, epoch)
             test(network, computation_device, test_loader)
 
-        ### Save the model 
+        # Save the model
         if (save_model):
             torch.save(network.state_dict(), PATH_TO_STORE_MODEL+'CNN.ckpt')
 
         if (plot_kernels):
-            ### Plotting the kernels
+            # Plotting the kernels
             kernel1 = network.layer1[0].weight.detach().clone()
             if (computation_device == torch.device("cuda")):
                 kernel1 = kernel1.cpu()
@@ -142,42 +142,51 @@ def main():
                 plt.title(f"Second conv layer layers for {to_show} filter.")
                 plt.show()
 
-        ### One index corresponding to each digit. I checked this kind of manually so it is hardcoded.
+        # One index corresponding to each digit. I checked this kind of manually so it is hardcoded.
         indices = [3, 2, 1, 30, 4, 23, 11, 0, 84, 7]
 
-        ### Visualize which parts are affecting
+        # Visualize which parts are affecting
         if (visualize_occlusion_effects):
             for test_index in indices:
                 test_image = test_loader.dataset.data[test_index, :, :].clone()
-                for y_axis in range(0,2):
-                    for x_axis in range(0,2):
+                for y_axis in range(0, 2):
+                    for x_axis in range(0, 2):
                         temp_image_to_be_covered = test_image.clone()
-                        temp_image_to_be_covered[14*y_axis:14*y_axis+14, 14*x_axis:14*x_axis+14] = 0
+                        temp_image_to_be_covered[14*y_axis:14 *
+                                                 y_axis+14, 14*x_axis:14*x_axis+14] = 0
                         with torch.no_grad():
                             if (computation_device == torch.device("cuda")):
-                                output = torch.exp(network(temp_image_to_be_covered.reshape(1,1,28,28).cuda()))
+                                output = torch.exp(
+                                    network(temp_image_to_be_covered.reshape(1, 1, 28, 28).cuda()))
                             else:
-                                output = torch.exp(network(temp_image_to_be_covered.reshape(1,1,28,28)))
-                            prediction = torch.argmax(output).cpu().squeeze().item()
-                            probability = torch.max(output).cpu().squeeze().item()
+                                output = torch.exp(
+                                    network(temp_image_to_be_covered.reshape(1, 1, 28, 28)))
+                            prediction = torch.argmax(
+                                output).cpu().squeeze().item()
+                            probability = torch.max(
+                                output).cpu().squeeze().item()
                         plt.imshow(temp_image_to_be_covered)
-                        plt.title("Predicted {} with probability {:.6f}.".format(prediction, probability))
+                        plt.title("Predicted {} with probability {:.6f}.".format(
+                            prediction, probability))
                         plt.show()
 
-        ### Visualize feature maps
+        # Visualize feature maps
         if (visualize_features):
             for test_index in indices:
                 if (computation_device == torch.device("cuda")):
-                    test_image = test_loader.dataset.data[test_index, :, :].clone().reshape(1,1,28,28).clone().cuda().float()
+                    test_image = test_loader.dataset.data[test_index, :, :].clone().reshape(
+                        1, 1, 28, 28).clone().cuda().float()
                 else:
-                    test_image = test_loader.dataset.data[test_index, :, :].clone().reshape(1,1,28,28).clone().float()
+                    test_image = test_loader.dataset.data[test_index, :, :].clone().reshape(
+                        1, 1, 28, 28).clone().float()
                 with torch.no_grad():
-                    layer_1_output = network.layer1[0].forward(test_image).reshape(32,1,28,28)
+                    layer_1_output = network.layer1[0].forward(
+                        test_image).reshape(32, 1, 28, 28)
                 layer_1_output = layer_1_output.cpu()
                 layer_1_output = layer_1_output - layer_1_output.min()
                 layer_1_output = layer_1_output/layer_1_output.max()
                 img = make_grid(layer_1_output)
-                plt.imshow(img.permute(1,2,0))
+                plt.imshow(img.permute(1, 2, 0))
                 plt.title("Feature maps after the first conv layer")
                 plt.show()
 
@@ -188,12 +197,11 @@ def main():
                 layer_2_output = layer_2_output.cpu()
                 layer_2_output = layer_2_output - layer_2_output.min()
                 layer_2_output = layer_2_output/layer_2_output.max()
-                layer_2_output = layer_2_output.reshape(32,1,14,14)
+                layer_2_output = layer_2_output.reshape(32, 1, 14, 14)
                 img = make_grid(layer_2_output)
-                plt.imshow(img.permute(1,2,0))
+                plt.imshow(img.permute(1, 2, 0))
                 plt.title("Feature maps after the second conv layer.")
                 plt.show()
-                
 
     except KeyboardInterrupt:
         print("\nExiting............")
