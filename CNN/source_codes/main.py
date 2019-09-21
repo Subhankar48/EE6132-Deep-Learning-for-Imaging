@@ -17,13 +17,14 @@ MODEL_FOLDER = 'model'
 to_download = False
 _batch_size = 128
 _shuffle = True
-VALIDATION_SIZE = 10000
+TEST_SIZE = 10000
 use_cuda = torch.cuda.is_available()
 computation_device = torch.device("cuda" if use_cuda else "cpu")
 learning_rate = 0.08
-number_of_epochs = 1
-save_model = False
+number_of_epochs = 8
+save_model = True
 plot = False
+visualize = True
 
 # Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
@@ -100,10 +101,10 @@ def main():
                                                  transform=_transform), batch_size=_batch_size, shuffle=_shuffle)
         test_loader = DataLoader(
             datasets.MNIST(FOLDER_NAME, train=False, transform=_transform),
-            batch_size=_batch_size, shuffle=_shuffle)
+            batch_size=_batch_size)
         network = CNN().to(computation_device)
         optimizer = optim.SGD(network.parameters(), lr=learning_rate)
-       
+
         for epoch in range(1, number_of_epochs+1):
             train(network, computation_device, train_loader, optimizer, epoch)
             test(network, computation_device, test_loader)
@@ -137,13 +138,24 @@ def main():
                 plt.title(f"Second conv layer layers for {to_show} filter.")
                 plt.show()
 
-        a = test_loader.dataset.data[0,:,:].clone().float()
-        a[7:21,7:21] = 0
-        plt.imshow(a)
-        plt.show()
-        with torch.no_grad():
-            print(torch.exp(network(a.reshape(1,1,28,28).cuda())))
+        # One index corresponding to each digit. I checked this kind of manually so it is hardcoded.
+        indices = [3, 2, 1, 30, 4, 23, 11, 0, 84, 7]
 
+        # Visualize which parts are affecting
+        if (visualize):
+            for test_index in indices:
+                test_image = test_loader.dataset.data[test_index, :, :].clone()
+                for y_axis in range(0,2):
+                    for x_axis in range(0,2):
+                        temp_image_to_be_covered = test_image.clone()
+                        temp_image_to_be_covered[14*y_axis:14*y_axis+14, 14*x_axis:14*x_axis+14] = 0
+                        with torch.no_grad():
+                            output = torch.exp(network(temp_image_to_be_covered.reshape(1,1,28,28).cuda()))
+                            prediction = torch.argmax(output).cpu().squeeze().item()
+                            probability = torch.max(output).cpu().squeeze().item()
+                        plt.imshow(temp_image_to_be_covered)
+                        plt.title("Predicted {} with probability {:.6f}.".format(prediction, probability))
+                        plt.show()
 
     except KeyboardInterrupt:
         print("\nExiting............")
