@@ -32,8 +32,8 @@ plot_kernels = False
 visualize_occlusion_effects = False
 visualize_features = False
 non_targetted_attack = False
-targetted_attack = True
-
+targetted_attack = False
+noise_addition = False
 ### Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
     os.mkdir(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME))
@@ -293,6 +293,60 @@ def main():
                     show_again = True
                 else:
                     show_again = False
+
+        # Noise addition
+        if (noise_addition):
+            show_again = True
+            true_words = ['t', "T", 'true', "True", 'TRUE']
+            while (show_again):
+                original_number = int(input("Enter the image class you want to begin with.\n"))
+                number_to_make = int(input("Enter the image class you want to confuse the classifier to.\n"))
+                original_image = test_loader.dataset.data[indices[original_number], :,:].clone().reshape(1,1,28,28).cuda().float()
+                f, axarr = plt.subplots(1,2)
+                axarr[0].imshow(original_image.cpu().reshape(28,28).numpy())
+                axarr[0].set_title(f"Original Image of {original_number}")
+                noise = np.random.normal(loc=128, scale=10, size=(28,28))
+                noise = np.random.normal(loc=128, scale=1, size=(28,28))
+                if (computation_device==torch.device("cuda")):
+                    noise_tensor = torch.from_numpy(noise).reshape(1,1,28,28).cuda().float()
+                else:
+                    noise_tensor = torch.from_numpy(noise).reshape(1,1,28,28).float()
+                # Calculate logits
+                prob_of_class = 0
+                step = 0
+                while (prob_of_class<1):
+                    noise_tensor = Variable(noise_tensor, requires_grad=True)
+                    out = network.layer1.forward(noise_tensor+original_image)
+                    out = network.layer2.forward(out)
+                    out = out.reshape(out.size(0), -1)
+                    out = network.layer3.forward(out)
+                    out = network.layer4.forward(out)
+                    probablity = F.softmax(out, dim=1).cpu().detach().numpy()
+                    prob_of_class = probablity[:,number_to_make]
+                    loss = out[:, number_to_make]
+                    to_print = loss.cpu().detach().numpy()
+                    if (step%10==0):
+                        print(f"p({number_to_make}) : {prob_of_class}\tStep : {step}\tLogit value : {to_print}")
+                    loss.backward(retain_graph=True)
+                    input_grad = torch.sign(noise_tensor.grad.data)
+                    input_grad = input_grad - input_grad.min()
+                    input_grad = input_grad/input_grad.max()
+                    noise_tensor = noise_tensor+0.1*input_grad
+                    step = step+1
+
+                to_plot = (noise_tensor+original_image).cpu().reshape(28,28).detach().numpy()
+                to_plot = to_plot - np.min(to_plot)
+                to_plot = to_plot/np.max(to_plot)
+                axarr[1].imshow(to_plot)
+                axarr[1].set_title(f"Noisy image of {original_number} classified as {number_to_make}")
+                plt.show()
+                print("\nEnter t or T if you want to visualize another pair. Enter anything else otherwise.")
+                choice = input("\n")
+                if choice in true_words:
+                    show_again = True
+                else:
+                    show_again = False
+
 
     except KeyboardInterrupt:
         print("\nExiting............")
