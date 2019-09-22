@@ -23,6 +23,8 @@ use_cuda = torch.cuda.is_available()
 computation_device = torch.device("cuda" if use_cuda else "cpu")
 learning_rate = 0.08
 number_of_epochs = 8
+step_size_non_targetted = 0.1
+iterations_non_targetted = 15000
 save_model = False
 plot_kernels = False
 visualize_occlusion_effects = False
@@ -218,7 +220,7 @@ def main():
                 else:
                     noise_tensor = torch.from_numpy(noise).reshape(1,1,28,28).float()
                 # Calculate logits
-                for step in range(15000):
+                for step in range(iterations_non_targetted):
                     noise_tensor = Variable(noise_tensor, requires_grad=True)
                     out = network.layer1.forward(noise_tensor)
                     out = network.layer2.forward(out)
@@ -231,7 +233,7 @@ def main():
                         print(f"Number to generate : {number_to_make}\tStep : {step}\tLogit value : {to_print}")
                     loss.backward(retain_graph=True)
                     input_grad = torch.sign(noise_tensor.grad.data)
-                    noise_tensor = noise_tensor+0.1*input_grad
+                    noise_tensor = noise_tensor+step_size_non_targetted*input_grad
                 
                 to_plot = noise_tensor.cpu().reshape(28,28).detach().numpy()
                 to_plot = to_plot - np.min(to_plot)
