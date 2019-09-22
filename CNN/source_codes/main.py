@@ -25,11 +25,14 @@ learning_rate = 0.08
 number_of_epochs = 8
 step_size_non_targetted = 0.1
 iterations_non_targetted = 15000
+beta=0.185
+iterations_targetted = 670
 save_model = False
 plot_kernels = False
 visualize_occlusion_effects = False
 visualize_features = False
 non_targetted_attack = False
+targetted_attack = True
 
 ### Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
@@ -243,6 +246,53 @@ def main():
                 plt.title(f"Adversarial image generated for {number_to_make}")
                 plt.show()
 
+        # Targetted attack
+        if (targetted_attack):
+            show_again = True
+            true_words = ['t', "T", 'true', "True", 'TRUE']
+            while (show_again):
+                number_to_make_it_look_like = int(input("Enter the digit you want the generated image to look like.\n"))
+                number_to_classify_it_as = int(input("Enter the digit you want it to be classified as.\n"))
+                target_image = test_loader.dataset.data[indices[number_to_make_it_look_like], :,:].clone().reshape(1,1,28,28).cuda().float()
+                f, axarr = plt.subplots(1,2)
+                axarr[0].imshow(target_image.cpu().reshape(28,28).numpy())
+                axarr[0].set_title(f"Target Image of {number_to_make_it_look_like}")
+                noise = np.random.normal(loc=128, scale=10, size=(28,28))
+                if (computation_device==torch.device("cuda")):
+                    noise_tensor = torch.from_numpy(noise).reshape(1,1,28,28).cuda().float()
+                else:
+                    noise_tensor = torch.from_numpy(noise).reshape(1,1,28,28).float()
+                for step in range(iterations_targetted):
+                    noise_tensor = Variable(noise_tensor, requires_grad=True)
+                    out = network.layer1.forward(noise_tensor)
+                    out = network.layer2.forward(out)
+                    out = out.reshape(out.size(0), -1)
+                    out = network.layer3.forward(out)
+                    out = network.layer4.forward(out)
+                    probablities = F.softmax(out, dim=1)
+                    to_be_predicted_class_probablity = probablities[:,number_to_classify_it_as].cpu().detach().numpy()
+                    Logit = out[:, number_to_classify_it_as]
+                    mse_error = F.mse_loss(noise_tensor, target_image)
+                    mse_error_to_print = (mse_error.cpu().detach().numpy())
+                    loss = Logit - beta*mse_error
+                    if (step%10==0):
+                        print(f"Step : {step}\t p(classification) : {to_be_predicted_class_probablity}\tMSE : {mse_error_to_print}")
+                    loss.backward(retain_graph=True)
+                    input_grad = torch.sign(noise_tensor.grad.data)
+                    noise_tensor = noise_tensor+step_size_non_targetted*input_grad
+                
+                to_plot = noise_tensor.cpu().reshape(28,28).detach().numpy()
+                to_plot = to_plot - np.min(to_plot)
+                to_plot = to_plot/np.max(to_plot)
+                axarr[1].imshow(to_plot)
+                axarr[1].set_title(f"Generated image of {number_to_make_it_look_like} classified as {number_to_classify_it_as}")
+                plt.show()
+                print("\nEnter t or T if you want to visualize another pair. Enter anything else otherwise.")
+                choice = input("\n")
+                if choice in true_words:
+                    show_again = True
+                else:
+                    show_again = False
 
     except KeyboardInterrupt:
         print("\nExiting............")
