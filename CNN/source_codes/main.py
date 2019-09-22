@@ -9,6 +9,7 @@ import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torchvision.utils import make_grid
+from torch.autograd import Variable
 
 ### Configurations
 CURRENT_DIRECTORY = os.getcwd()
@@ -26,6 +27,8 @@ save_model = False
 plot_kernels = False
 visualize_occlusion_effects = False
 visualize_features = False
+non_targetted_attack = False
+
 ### Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
     os.mkdir(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME))
@@ -203,6 +206,41 @@ def main():
                 plt.imshow(img.permute(1, 2, 0))
                 plt.title("Feature maps after the second conv layer.")
                 plt.show()
+
+        ### Adversarial examples
+        # Non targetted attack 
+        numbers_to_make = [0,1,2,3,4,5,6,7,8,9]
+        if (non_targetted_attack):
+            for number_to_make in numbers_to_make:
+                noise = np.random.normal(loc=128, scale=10, size=(28,28))
+                if (computation_device==torch.device("cuda")):
+                    noise_tensor = torch.from_numpy(noise).reshape(1,1,28,28).cuda().float()
+                else:
+                    noise_tensor = torch.from_numpy(noise).reshape(1,1,28,28).float()
+                # Calculate logits
+                for step in range(15000):
+                    noise_tensor = Variable(noise_tensor, requires_grad=True)
+                    out = network.layer1.forward(noise_tensor)
+                    out = network.layer2.forward(out)
+                    out = out.reshape(out.size(0), -1)
+                    out = network.layer3.forward(out)
+                    out = network.layer4.forward(out)
+                    loss = out[:, number_to_make]
+                    to_print = loss.cpu().detach().numpy()
+                    if (step%100==0):
+                        print(f"Number to generate : {number_to_make}\tStep : {step}\tLogit value : {to_print}")
+                    loss.backward(retain_graph=True)
+                    input_grad = torch.sign(noise_tensor.grad.data)
+                    noise_tensor = noise_tensor+0.1*input_grad
+                
+                to_plot = noise_tensor.cpu().reshape(28,28).detach().numpy()
+                to_plot = to_plot - np.min(to_plot)
+                to_plot = to_plot/np.max(to_plot)
+                plt.imshow(to_plot)
+                plt.colorbar()
+                plt.title(f"Adversarial image generated for {number_to_make}")
+                plt.show()
+
 
     except KeyboardInterrupt:
         print("\nExiting............")
