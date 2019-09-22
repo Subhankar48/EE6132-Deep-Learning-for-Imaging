@@ -10,7 +10,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torchvision.utils import make_grid
 
-# Configurations
+### Configurations
 CURRENT_DIRECTORY = os.getcwd()
 FOLDER_NAME = 'mnist'
 MODEL_FOLDER = 'model'
@@ -26,7 +26,7 @@ save_model = False
 plot_kernels = False
 visualize_occlusion_effects = False
 visualize_features = False
-# Download
+### Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
     os.mkdir(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME))
     to_download = True
@@ -34,7 +34,7 @@ if (save_model):
     if not os.path.exists(os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)):
         os.mkdir(os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER))
     PATH_TO_STORE_MODEL = os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)+'/'
-# CNN Definition
+### CNN Definition
 
 
 class CNN(nn.Module):
@@ -55,9 +55,8 @@ class CNN(nn.Module):
         out = self.layer4(out)
         return F.log_softmax(out, dim=1)
 
-# Main
 
-# Define Training
+### Define Training
 
 
 def train(network, computation_device, train_loader, optimizer, epoch):
@@ -74,7 +73,7 @@ def train(network, computation_device, train_loader, optimizer, epoch):
             data), len(train_loader.dataset), 100.0*batch_idx/len(train_loader), loss.item()))
 
 
-# Testing Definition
+### Testing Definition
 def test(network, computation_device, test_loader):
     network.eval()
     test_loss = 0
@@ -92,6 +91,8 @@ def test(network, computation_device, test_loader):
     print('\nTest set: Average Loss: {:.4f}, Accuracy: {}/{} ({:.3f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), 100.0*correct/len(test_loader.dataset)))
 
+### Main
+
 
 def main():
     try:
@@ -103,21 +104,21 @@ def main():
             datasets.MNIST(FOLDER_NAME, train=False, transform=_transform),
             batch_size=_batch_size)
 
-        # Declare the network and optimizer
+        ### Declare the network and optimizer
         network = CNN().to(computation_device)
         optimizer = optim.SGD(network.parameters(), lr=learning_rate)
 
-        # Train and test the network
+        ### Train and test the network
         for epoch in range(1, number_of_epochs+1):
             train(network, computation_device, train_loader, optimizer, epoch)
             test(network, computation_device, test_loader)
 
-        # Save the model
+        ### Save the model
         if (save_model):
             torch.save(network.state_dict(), PATH_TO_STORE_MODEL+'CNN.ckpt')
 
         if (plot_kernels):
-            # Plotting the kernels
+            ### Plotting the kernels
             kernel1 = network.layer1[0].weight.detach().clone()
             if (computation_device == torch.device("cuda")):
                 kernel1 = kernel1.cpu()
@@ -142,10 +143,10 @@ def main():
                 plt.title(f"Second conv layer layers for {to_show} filter.")
                 plt.show()
 
-        # One index corresponding to each digit. I checked this kind of manually so it is hardcoded.
+        ### One index corresponding to each digit. I checked this kind of manually so it is hardcoded.
         indices = [3, 2, 1, 30, 4, 23, 11, 0, 84, 7]
 
-        # Visualize which parts are affecting
+        ### Visualize which parts are affecting
         if (visualize_occlusion_effects):
             for test_index in indices:
                 test_image = test_loader.dataset.data[test_index, :, :].clone()
@@ -170,7 +171,7 @@ def main():
                             prediction, probability))
                         plt.show()
 
-        # Visualize feature maps
+        ### Visualize feature maps
         if (visualize_features):
             for test_index in indices:
                 if (computation_device == torch.device("cuda")):
