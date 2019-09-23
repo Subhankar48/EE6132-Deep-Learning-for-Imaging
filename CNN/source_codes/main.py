@@ -34,6 +34,8 @@ visualize_features = False
 non_targetted_attack = False
 targetted_attack = False
 noise_addition = False
+load_model = True
+
 ### Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
     os.mkdir(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME))
@@ -41,7 +43,8 @@ if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
 if (save_model):
     if not os.path.exists(os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)):
         os.mkdir(os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER))
-    PATH_TO_STORE_MODEL = os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)+'/'
+PATH_TO_STORE_MODEL = os.path.join(CURRENT_DIRECTORY, MODEL_FOLDER)+'/'
+
 ### CNN Definition
 
 
@@ -116,10 +119,14 @@ def main():
         network = CNN().to(computation_device)
         optimizer = optim.SGD(network.parameters(), lr=learning_rate)
 
+        if (load_model):
+            network.load_state_dict(torch.load(PATH_TO_STORE_MODEL+'CNN.ckpt'), strict=False)
+
         ### Train and test the network
-        for epoch in range(1, number_of_epochs+1):
-            train(network, computation_device, train_loader, optimizer, epoch)
-            test(network, computation_device, test_loader)
+        if (not load_model):
+            for epoch in range(1, number_of_epochs+1):
+                train(network, computation_device, train_loader, optimizer, epoch)
+                test(network, computation_device, test_loader)
 
         ### Save the model
         if (save_model):
@@ -301,10 +308,13 @@ def main():
             while (show_again):
                 original_number = int(input("Enter the image class you want to begin with.\n"))
                 number_to_make = int(input("Enter the image class you want to confuse the classifier to.\n"))
-                original_image = test_loader.dataset.data[indices[original_number], :,:].clone().reshape(1,1,28,28).cuda().float()
-                f, axarr = plt.subplots(1,2)
-                axarr[0].imshow(original_image.cpu().reshape(28,28).numpy())
-                axarr[0].set_title(f"Original Image of {original_number}")
+                if (computation_device==torch.device("cuda")):                
+                    original_image = test_loader.dataset.data[indices[original_number], :,:].clone().reshape(1,1,28,28).cuda().float()
+                else:
+                    original_image = test_loader.dataset.data[indices[original_number], :,:].clone().reshape(1,1,28,28).float()
+                f, axarr = plt.subplots(2,2)
+                axarr[0,0].imshow(original_image.cpu().reshape(28,28).numpy())
+                axarr[0,0].set_title(f"Original Image of {original_number}")
                 noise = np.random.normal(loc=128, scale=10, size=(28,28))
                 noise = np.random.normal(loc=128, scale=1, size=(28,28))
                 if (computation_device==torch.device("cuda")):
@@ -314,7 +324,8 @@ def main():
                 # Calculate logits
                 prob_of_class = 0
                 step = 0
-                while (prob_of_class<1):
+                max_probable_class = original_number
+                while (max_probable_class!=number_to_make):
                     noise_tensor = Variable(noise_tensor, requires_grad=True)
                     out = network.layer1.forward(noise_tensor+original_image)
                     out = network.layer2.forward(out)
@@ -322,6 +333,7 @@ def main():
                     out = network.layer3.forward(out)
                     out = network.layer4.forward(out)
                     probablity = F.softmax(out, dim=1).cpu().detach().numpy()
+                    max_probable_class = int(np.argmax(probablity))
                     prob_of_class = probablity[:,number_to_make]
                     loss = out[:, number_to_make]
                     to_print = loss.cpu().detach().numpy()
@@ -334,11 +346,40 @@ def main():
                     noise_tensor = noise_tensor+0.1*input_grad
                     step = step+1
 
-                to_plot = (noise_tensor+original_image).cpu().reshape(28,28).detach().numpy()
-                to_plot = to_plot - np.min(to_plot)
-                to_plot = to_plot/np.max(to_plot)
-                axarr[1].imshow(to_plot)
-                axarr[1].set_title(f"Noisy image of {original_number} classified as {number_to_make}")
+                noisy_image_to_plot = (noise_tensor+original_image).cpu().reshape(28,28).detach().numpy()
+                noisy_image_to_plot = noisy_image_to_plot - np.min(noisy_image_to_plot)
+                noisy_image_to_plot = noisy_image_to_plot/np.max(noisy_image_to_plot)
+                axarr[0,1].imshow(noisy_image_to_plot)
+                axarr[0,1].set_title(f"Noisy image of {original_number} classified as {number_to_make}")
+
+                noise_to_plot = (noise_tensor).cpu().reshape(28,28).detach().numpy()
+                noise_to_plot = noise_to_plot - np.min(noise_to_plot)
+                noise_to_plot = noise_to_plot/np.max(noise_to_plot)
+                axarr[1,0].imshow(noise_to_plot)
+                axarr[1,0].set_title(f"Noise Generated")
+
+                number_to_add_noise_to = int(input("\nEnter the number you want to add noise to.\n"))
+                if (computation_device==torch.device("cuda")):
+                    image_to_add_noise_to = test_loader.dataset.data[indices[number_to_add_noise_to], :,:].clone().reshape(1,1,28,28).cuda().float()
+                else:
+                    image_to_add_noise_to = test_loader.dataset.data[indices[image_to_add_noise_to], :,:].clone().reshape(1,1,28,28).float()
+
+                out = network.layer1.forward(noise_tensor+image_to_add_noise_to)
+                out = network.layer2.forward(out)
+                out = out.reshape(out.size(0), -1)
+                out = network.layer3.forward(out)
+                out = network.layer4.forward(out)
+                probablity = F.softmax(out, dim=1).cpu().detach().numpy()
+                max_probable_class = int(np.argmax(probablity))
+                prob_of_class = probablity[:,max_probable_class]
+                
+                noise_added_to_image_to_plot = (noise_tensor+image_to_add_noise_to).cpu().reshape(28,28).detach().numpy()
+                noise_added_to_image_to_plot = noise_added_to_image_to_plot - np.min(noise_added_to_image_to_plot)
+                noise_added_to_image_to_plot = noise_added_to_image_to_plot/np.max(noise_added_to_image_to_plot)
+                axarr[1,1].imshow(noise_added_to_image_to_plot)
+                axarr[1,1].set_title(f"Noisy image of {number_to_add_noise_to} classified as {max_probable_class}")
+                print(f"Noisy image of {number_to_add_noise_to} classified as {max_probable_class} with probability {prob_of_class}.")
+
                 plt.show()
                 print("\nEnter t or T if you want to visualize another pair. Enter anything else otherwise.")
                 choice = input("\n")
