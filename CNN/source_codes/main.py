@@ -70,7 +70,7 @@ class CNN(nn.Module):
 ### Define Training
 
 
-def train(network, computation_device, train_loader, optimizer, epoch):
+def train(network, computation_device, train_loader, optimizer, epoch, loss_list):
     network.train()
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(
@@ -82,10 +82,11 @@ def train(network, computation_device, train_loader, optimizer, epoch):
         optimizer.step()
         print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\n'.format(epoch, batch_idx*len(
             data), len(train_loader.dataset), 100.0*batch_idx/len(train_loader), loss.item()))
+        loss_list.append(loss.item())
 
 
 ### Testing Definition
-def test(network, computation_device, test_loader):
+def test(network, computation_device, test_loader, test_losses, accuracies):
     network.eval()
     test_loss = 0
     correct = 0
@@ -99,9 +100,11 @@ def test(network, computation_device, test_loader):
             correct += pred.eq(target.view_as(pred)).sum().item()
 
     test_loss /= len(test_loader.dataset)
+    accuracy = correct/len(test_loader.dataset)
     print('\nTest set: Average Loss: {:.4f}, Accuracy: {}/{} ({:.3f}%)\n'.format(
-        test_loss, correct, len(test_loader.dataset), 100.0*correct/len(test_loader.dataset)))
-
+        test_loss, correct, len(test_loader.dataset), 100.0*accuracy))
+    test_losses.append(test_loss)
+    accuracies.append(accuracy)
 ### Main
 
 
@@ -124,9 +127,27 @@ def main():
 
         ### Train and test the network
         if (not load_model):
+            train_losses = []
+            validation_losses = []
+            accuracies = []
             for epoch in range(1, number_of_epochs+1):
-                train(network, computation_device, train_loader, optimizer, epoch)
-                test(network, computation_device, test_loader)
+                train(network, computation_device, train_loader, optimizer, epoch, train_losses)
+                test(network, computation_device, test_loader, validation_losses, accuracies)
+            # Plot the losses
+            sampling_rate = int(len(train_losses)/number_of_epochs)
+            plt.plot(np.asfarray(train_losses)[::sampling_rate])
+            plt.plot(np.asfarray(validation_losses))
+            plt.title("Loss curves")
+            plt.xlabel("Epoch")
+            plt.ylabel("NLL Loss")
+            plt.legend(["Training Loss", "Validation Loss"])
+            plt.show()
+            plt.plot(np.asfarray(accuracies))
+            plt.xlabel("Epoch")
+            plt.ylabel("Accuracy")
+            plt.title("Accuracy plot")
+            plt.ylim(0,1)
+            plt.show()
 
         ### Save the model
         if (save_model):
