@@ -266,6 +266,7 @@ def main():
                 input_grad = torch.sign(noise_tensor.grad.data)
                 noise_tensor = noise_tensor+step_size_non_targetted*input_grad
             
+            print(f"Number to generate : {number_to_make}\tStep : {step}\tLogit value : {to_print}")
             to_plot = noise_tensor.cpu().reshape(28,28).detach().numpy()
             to_plot = to_plot - np.min(to_plot)
             to_plot = to_plot/np.max(to_plot)
@@ -305,7 +306,7 @@ def main():
                 loss.backward(retain_graph=True)
                 input_grad = torch.sign(noise_tensor.grad.data)
                 noise_tensor = noise_tensor+step_size_non_targetted*input_grad
-            
+            print(f"Step : {step}\t p(classification) : {to_be_predicted_class_probablity}\tMSE : {mse_error_to_print}")
             to_plot = noise_tensor.cpu().reshape(28,28).detach().numpy()
             to_plot = to_plot - np.min(to_plot)
             to_plot = to_plot/np.max(to_plot)
@@ -355,6 +356,7 @@ def main():
                 noise_tensor = noise_tensor+0.1*input_grad
                 step = step+1
 
+            print(f"p({number_to_make}) : {prob_of_class}\tStep : {step}\tLogit value : {to_print}")
             noisy_image_to_plot = (noise_tensor+original_image).cpu().reshape(28,28).detach().numpy()
             noisy_image_to_plot = noisy_image_to_plot - np.min(noisy_image_to_plot)
             noisy_image_to_plot = noisy_image_to_plot/np.max(noisy_image_to_plot)
