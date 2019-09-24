@@ -10,6 +10,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Dataset, TensorDataset
 from torchvision.utils import make_grid
 from torch.autograd import Variable
+np.set_printoptions(suppress=True)
 
 ### Configurations
 CURRENT_DIRECTORY = os.getcwd()
@@ -184,29 +185,48 @@ def main():
 
         ### Visualize which parts are affecting
         def visualize_occlusion_effects():
+            print("A 14x14 patch with stride 2 will be moved over the image.")
+            print("Keep pressing q to continue.")
+            print("At the end a probability map and max probable class map will be printed.")
             test_index = int(input("\nChoose the number on which you want to see occlusion efects.\n"))
             test_image = test_loader.dataset.data[indices[test_index], :, :].clone()
-            for y_axis in range(0, 2):
-                for x_axis in range(0, 2):
+            dimension = len(range(0,14,2))
+            probability_map = np.zeros((dimension, dimension), dtype=np.float)
+            max_probable_class_map = np.zeros_like(probability_map)
+            for y_axis in range(0, 14, 2):
+                for x_axis in range(0, 14, 2):
                     temp_image_to_be_covered = test_image.clone()
-                    temp_image_to_be_covered[14*y_axis:14 *
-                                                y_axis+14, 14*x_axis:14*x_axis+14] = 0
+                    temp_image_to_be_covered[y_axis:
+                                                y_axis+14, x_axis:x_axis+14] = 0
                     with torch.no_grad():
                         if (computation_device == torch.device("cuda")):
-                            output = torch.exp(
-                                network(temp_image_to_be_covered.reshape(1, 1, 28, 28).cuda()))
+                            temp_image_to_be_covered = temp_image_to_be_covered.clone().reshape(1,1,28,28).cuda().float()
                         else:
-                            output = torch.exp(
-                                network(temp_image_to_be_covered.reshape(1, 1, 28, 28)))
-                        prediction = torch.argmax(
-                            output).cpu().squeeze().item()
-                        probability = torch.max(
-                            output).cpu().squeeze().item()
-                    plt.imshow(temp_image_to_be_covered)
-                    plt.title("Predicted {} with probability {:.6f}.".format(
-                        prediction, probability))
-                    plt.show()
+                            temp_image_to_be_covered = temp_image_to_be_covered.clone().reshape(1,1,28,28).float()
 
+                        out = network.layer1.forward(temp_image_to_be_covered)
+                        out = network.layer2.forward(out)
+                        out = out.reshape(out.size(0), -1)
+                        out = network.layer3.forward(out)
+                        out = network.layer4.forward(out)
+                        probablities = F.softmax(out, dim=1).cpu().detach().numpy()
+                        prediction = np.argmax(probablities)
+                        probability = probablities[:, test_index]
+                        max_probable_class = prediction
+                        probability_map[int(y_axis/2),int(x_axis/2)] = probability[0]
+                        max_probable_class_map[int(y_axis/2),int(x_axis/2)] = max_probable_class
+
+                    # if ((x_axis%4==0)&(y_axis%4==0)):
+                    #     plt.imshow(temp_image_to_be_covered.cpu().numpy().reshape(28,28))
+                    #     plt.title("probability of  {} is  {:.6f}.".format(
+                    #         test_index, probability[0]))
+                    #     plt.show()
+            
+            print("\n\nProbability of {} as the patch is moved.".format(test_index))
+            print(probability_map)
+            print("\n\nMaximum probable class as the patch is moved.")
+            print(max_probable_class_map)
+            print("\n\n")
         ### Visualize feature maps
         def visualize_features():
             test_index = int(input("\nChoose the number whose feature maps you want to visualize.\n"))
