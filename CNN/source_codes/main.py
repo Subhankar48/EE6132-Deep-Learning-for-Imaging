@@ -28,14 +28,14 @@ step_size_non_targetted = 0.1
 iterations_non_targetted = 15000
 beta=0.185
 iterations_targetted = 670
-save_model = False
+save_model = True
 plot_kernels = False
 visualize_occlusion_effects = False
 visualize_features = False
 non_targetted_attack = False
 targetted_attack = False
 noise_addition = True
-load_model = True
+load_model = False
 
 ### Download
 if not os.path.exists(os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)):
@@ -154,6 +154,22 @@ def main():
         if (save_model):
             torch.save(network.state_dict(), PATH_TO_STORE_MODEL+'CNN.ckpt')
 
+        def random_selection_of_images():
+            list_of_indices = np.random.randint(low=0, high=9999, size=3)
+            for index in list_of_indices:
+                test_image = test_loader.dataset.data[index, :, :].clone()
+                with torch.no_grad():
+                    if (computation_device==torch.device("cuda")):
+                        test_image = test_image.reshape(1,1,28,28).cuda().float()
+                    else:
+                        test_image = test_image.reshape(1,1,28,28).float()
+                    out = network.forward(test_image).detach().cpu().numpy()
+
+                predicted_class = np.argmax(out)
+                plt.imshow(test_image.detach().cpu().numpy().reshape(28,28))
+                plt.title(f"Predicted as {predicted_class}")
+                plt.show()
+
         def plot_kernels():
             ### Plotting the kernels
             kernel1 = network.layer1[0].weight.detach().clone()
@@ -216,11 +232,11 @@ def main():
                         probability_map[int(y_axis/2),int(x_axis/2)] = probability[0]
                         max_probable_class_map[int(y_axis/2),int(x_axis/2)] = max_probable_class
 
-                    # if ((x_axis%4==0)&(y_axis%4==0)):
-                    #     plt.imshow(temp_image_to_be_covered.cpu().numpy().reshape(28,28))
-                    #     plt.title("probability of  {} is  {:.6f}.".format(
-                    #         test_index, probability[0]))
-                    #     plt.show()
+                    if ((x_axis%4==0)&(y_axis%4==0)):
+                        plt.imshow(temp_image_to_be_covered.cpu().numpy().reshape(28,28))
+                        plt.title("probability of  {} is  {:.6f}.".format(
+                            test_index, probability[0]))
+                        plt.show()
             
             print("\n\nProbability of {} as the patch is moved.".format(test_index))
             print(probability_map)
@@ -271,6 +287,7 @@ def main():
             else:
                 noise_tensor = torch.from_numpy(noise).reshape(1,1,28,28).float()
             # Calculate logits
+            logit_values = []
             for step in range(iterations_non_targetted):
                 noise_tensor = Variable(noise_tensor, requires_grad=True)
                 out = network.layer1.forward(noise_tensor)
@@ -280,12 +297,17 @@ def main():
                 out = network.layer4.forward(out)
                 loss = out[:, number_to_make]
                 to_print = loss.cpu().detach().numpy()
+                logit_values.append(to_print)
                 if (step%100==0):
                     print(f"Number to generate : {number_to_make}\tStep : {step}\tLogit value : {to_print}")
                 loss.backward(retain_graph=True)
                 input_grad = torch.sign(noise_tensor.grad.data)
                 noise_tensor = noise_tensor+step_size_non_targetted*input_grad
             
+            plt.plot(np.asfarray(logit_values))
+            plt.title(f"Cost function for {number_to_make}")
+            plt.show()
+
             print(f"Number to generate : {number_to_make}\tStep : {step}\tLogit value : {to_print}")
             to_plot = noise_tensor.cpu().reshape(28,28).detach().numpy()
             to_plot = to_plot - np.min(to_plot)
@@ -413,17 +435,18 @@ def main():
 
             plt.show()
 
-        map_of_functions = {1:plot_kernels, 2:visualize_occlusion_effects, 3:visualize_features, 4:non_targetted_attack, 5:targetted_attack, 6:noise_addition}
+        map_of_functions = {0:random_selection_of_images, 1:plot_kernels, 2:visualize_occlusion_effects, 3:visualize_features, 4:non_targetted_attack, 5:targetted_attack, 6:noise_addition}
 
         while(True):
             try:
+                print("Enter 0 to random selection of 3 images and the network prediction on it.")
                 print("Enter 1 to see the kernels.")
                 print("Enter 2 to see the effects of occlusion.")
                 print("enter 3 to visualize the feature maps.")
                 print("Enter 4 to see the effect of non targetted attack.")
                 print("Enter 5 to see the effect of targetted attack.")
                 print("Enter 6 to see the effect of Noise adition.")
-                print("Enter CTRL+C to escape.")
+                print("Press CTRL+C and enter to escape.")
                 choice = int(input("\nEnter the choice.\n"))
                 map_of_functions[choice]()
             except KeyboardInterrupt:
